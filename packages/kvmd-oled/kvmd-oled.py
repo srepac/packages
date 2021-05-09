@@ -19,20 +19,29 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.  #
 #                                                                            #
 # ========================================================================== #
-
-
+### srepac notes
+# Replace /usr/bin/kvmd-oled with this file after you make a backup just in case
+# In order to make this work on v2, follow the directions below:
+# 1. Add "i2c-dev" without the quotes into /etc/modules-load.d/kvmd.conf file
+# 2. Add "dtparam=i2c_arm=on" without the quotes into /boot/config.txt file
+# 3. Enable kvmd-oled services via "systemctl enable --now kvmd-oled" (applies to both v2/v3)
+# 4. reboot on v2 and watch the magic on your oled screen; no need to reboot v3
+###
 import sys
 import socket
 import logging
 import datetime
 import time
+### srepac changes
+import os
+###
 
 from typing import Tuple
 
 import netifaces
 import psutil
 
-from luma.core import cmdline 
+from luma.core import cmdline
 from luma.core.render import canvas
 
 from PIL import ImageFont
@@ -79,7 +88,12 @@ def main() -> None:
 
     parser = cmdline.create_parser(description="Display FQDN and IP on the OLED")
     parser.add_argument("--font", default="/usr/share/fonts/TTF/ProggySquare.ttf", help="Font path")
-    parser.add_argument("--font-size", default=16, type=int, help="Font size")
+
+    ### original code
+    #parser.add_argument("--font-size", default=16, type=int, help="Font size")
+    ### srepac change - to make it fit into 3 lines on small oled -- each row limited to 19 chars
+    parser.add_argument("--font-size", default=15, type=int, help="Font size")
+
     parser.add_argument("--interval", default=5, type=int, help="Screens interval")
     options = parser.parse_args(sys.argv[1:])
     if options.config:
@@ -96,19 +110,52 @@ def main() -> None:
     _logger.info("Size: %dx%d", device.width, device.height)
 
     try:
-        summary = True
+        ### srepac changes to show during service start up
+        with canvas(device) as draw:
+            text = f"kvmd-oled started\nInitializing...\n"
+            draw.multiline_text((0, 0), text, font=font, fill="white")
+        screen = 0
+        ###
         while True:
             with canvas(device) as draw:
-                if summary:
-                    text = f"{socket.getfqdn()}\nUp: {_get_uptime()}"
-                else:
-                    text = f"Iface: %s\n%s" % (_get_ip())
+                ### srepac changes to have 4 different screens using modulo division
+                rem = screen % 4
+                if rem == 0:   ### first page is model number, date, image version (v2-hdmi, v2-hdmiusb, etc...), and #users
+                    x = os.popen(" date +\"%D %H:%M %Z\" ")
+                    date = x.read().replace('\n', '')
+                    x = os.popen(" uptime | awk -F, '{print $2}' ")
+                    users = x.read().replace('\n', '')
+                    x = os.popen(" pistat | grep Pi | awk '{print $4 $5 $6 $7, $8, $9}' | sed -e 's/Model//g' -e 's/Rev/ /g' -e 's
+/  / /g'")
+                    model = x.read().replace('\n', '')
+                    x = os.popen(" pacman -Q | grep kvmd-platform | cut -d'-' -f3,4 ")
+                    img = x.read().replace('\n', '')
+                    x = os.popen(" pacman -Q | grep kvmd' ' | awk '{print $NF}' | sed 's/-[1-9]//g' ")
+                    kvmdver = x.read().replace('\n', '')
+                    text = f"Pi {model} v{kvmdver}\n{date}\n{img}{users}"
+                elif rem == 1:  ### 2nd page is hostname, kvmd version, uptime and load avgs
+                    ### original code
+                    #text = f"{socket.getfqdn()}\nUp: {_get_uptime()}"
+                    load1, load5, load15 = os.getloadavg()
+                    text = f"{socket.getfqdn()}\nUp: {_get_uptime()}\n{load1}, {load5}, {load15}"
+                elif rem == 2:  ### 3rd page is iface, IP, wlan SSID and cpu/gpu temps
+                    ### original code
+                    #text = f"Iface: %s\n%s" % (_get_ip())
+                    ### srepac changes - show cpu/gputemp and ssid
+                    x = os.popen(" pistat | grep temp | cut -d' ' -f 3 ")
+                    temps = x.read().replace('\n', ' ')
+                    x = os.popen(" netctl-auto list | grep '*' | awk -F\- '{print $NF}' ")
+                    ssid = x.read().replace('\n', '')
+                    text = f"%s:%s\nSSID:{ssid}\nTemp:{temps}" % (_get_ip())
+                else:  ### last page shows microSD disk % usage and free space
+                    x = os.popen(" df -h | grep mmc | awk '{print $1, $(NF-1), $4 \" free\"}' | sed -e 's/\/dev\/mmcblk0/uSD/g' |
+sort ")
+                    text = f"{x.read()}"
+                screen += 1
                 draw.multiline_text((0, 0), text, font=font, fill="white")
-                summary = (not summary)
                 time.sleep(options.interval)
     except (SystemExit, KeyboardInterrupt):
         pass
-
 
 if __name__ == "__main__":
     main()
