@@ -120,7 +120,7 @@ def main() -> None:
             with canvas(device) as draw:
                 ### srepac changes to have 4 different screens using modulo division
                 rem = screen % 4
-                if rem == 0:   ### first page is model number, date, image version (v2-hdmi, v2-hdmiusb, etc...), and #users
+                if rem == 0:   ### first page is model number and kvmd version, date, image version (v2-hdmi, v2-hdmiusb, etc...), and #users
                     x = os.popen(" date +\"%D %H:%M %Z\" ")
                     date = x.read().replace('\n', '')
                     x = os.popen(" uptime | awk -F, '{print $2}' ")
@@ -133,21 +133,16 @@ def main() -> None:
                     x = os.popen(" pacman -Q | grep kvmd' ' | awk '{print $NF}' | sed 's/-[1-9]//g' ")
                     kvmdver = x.read().replace('\n', '')
                     text = f"Pi {model} v{kvmdver}\n{date}\n{img}{users}"
-                elif rem == 1:  ### 2nd page is hostname, kvmd version, uptime and load avgs
-                    ### original code
-                    #text = f"{socket.getfqdn()}\nUp: {_get_uptime()}"
+                elif rem == 1:  ### 2nd page is fqdn, uptime and load avgs
                     load1, load5, load15 = os.getloadavg()
                     text = f"{socket.getfqdn()}\nUp: {_get_uptime()}\n{load1}, {load5}, {load15}"
                 elif rem == 2:  ### 3rd page is iface, IP, wlan SSID and cpu/gpu temps
-                    ### original code
-                    #text = f"Iface: %s\n%s" % (_get_ip())
-                    ### srepac changes - show cpu/gputemp and ssid
                     x = os.popen(" pistat | grep temp | cut -d' ' -f 3 ")
                     temps = x.read().replace('\n', ' ')
                     x = os.popen(" netctl-auto list | grep '*' | awk -F\- '{print $NF}' ")
                     ssid = x.read().replace('\n', '')
                     text = f"%s:%s\nSSID:{ssid}\nTemp:{temps}" % (_get_ip())
-                else:  ### last page shows microSD disk % usage and free space
+                else:  ### last page shows microSD partition disk % usage and free space
                     x = os.popen(" df -h | grep mmc | awk '{print $1, $(NF-1), $4 \" free\"}' | sed -e 's/\/dev\/mmcblk0/uSD/g' |
 sort ")
                     text = f"{x.read()}"
