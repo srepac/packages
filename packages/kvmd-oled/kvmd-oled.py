@@ -120,32 +120,32 @@ def main() -> None:
             with canvas(device) as draw:
                 ### srepac changes to have 4 different screens using modulo division
                 rem = screen % 4
-                if rem == 0:   ### first page is model number and kvmd version, date, image version (v2-hdmi, v2-hdmiusb, etc...), and #users
-                    x = os.popen(" date +\"%D %H:%M %Z\" ")
-                    date = x.read().replace('\n', '')
-                    x = os.popen(" uptime | awk -F, '{print $2}' ")
-                    users = x.read().replace('\n', '')
-                    x = os.popen(" pistat | grep Pi | awk '{print $4 $5 $6 $7, $8, $9}' | sed -e 's/Model//g' -e 's/Rev/ /g' -e 's
-/  / /g'")
+                if rem == 0:   ### first page is model number, date, image version (v2-hdmi, v2-hdmiusb, etc...), and #users
+                    x = os.popen(" pistat | grep Pi | awk '{print $4, $5, $6, $7, $8, $9}' | sed -e 's/Model//g' -e 's/  / /g' ")
                     model = x.read().replace('\n', '')
                     x = os.popen(" pacman -Q | grep kvmd-platform | cut -d'-' -f3,4 ")
                     img = x.read().replace('\n', '')
                     x = os.popen(" pacman -Q | grep kvmd' ' | awk '{print $NF}' | sed 's/-[1-9]//g' ")
                     kvmdver = x.read().replace('\n', '')
-                    text = f"Pi {model} v{kvmdver}\n{date}\n{img}{users}"
-                elif rem == 1:  ### 2nd page is fqdn, uptime and load avgs
+                    text = f"{socket.getfqdn()}\nPi {model}\n{img} v{kvmdver}"
+                elif rem == 1:  ### 2nd page is uptime, load, and cpu/gpu temps
+                    x = os.popen(" date +\"%D %H:%M %Z\" ")
+                    date = x.read().replace('\n', '')
+                    x = os.popen(" uptime | awk -F\"user\" '{print $1}' | awk '{print $NF}' ")
+                    users = x.read().replace('\n', '')
                     load1, load5, load15 = os.getloadavg()
-                    text = f"{socket.getfqdn()}\nUp: {_get_uptime()}\n{load1}, {load5}, {load15}"
-                elif rem == 2:  ### 3rd page is iface, IP, wlan SSID and cpu/gpu temps
-                    x = os.popen(" pistat | grep temp | cut -d' ' -f 3 ")
-                    temps = x.read().replace('\n', ' ')
+                    text = f"{_get_uptime()}, {users} users\n{load1}, {load5}, {load15}\n{date}"
+                elif rem == 2:  ### 3rd page is eth/wlan ifaces+IP, and wlan SSID
                     x = os.popen(" netctl-auto list | grep '*' | awk -F\- '{print $NF}' ")
                     ssid = x.read().replace('\n', '')
-                    text = f"%s:%s\nSSID:{ssid}\nTemp:{temps}" % (_get_ip())
-                else:  ### last page shows microSD partition disk % usage and free space
-                    x = os.popen(" df -h | grep mmc | awk '{print $1, $(NF-1), $4 \" free\"}' | sed -e 's/\/dev\/mmcblk0/uSD/g' |
-sort ")
-                    text = f"{x.read()}"
+                    ethip = os.popen(" ip -o a | egrep 'eth|wlan' | grep -v inet6 | awk '{print $2, $4}' | cut -d'/' -f1 ")
+                    text = f"{ethip.read()}SSID {ssid}"
+                else:  ### last page shows cpu/gpu temps and microSD disk % usage and free space + ro/rw status
+                    x = os.popen(" pistat | grep temp | cut -d' ' -f 3 ")
+                    temps = x.read().replace('\n', ' ')
+                    x = os.popen(" for i in `mount | grep mmc | awk '{print $1}' | sort | grep -v p1`; do echo -n `df -h $i |  grep -v Filesystem | sort | awk '{print $1, $5, $4}' | sed -e 's+/dev/mmcblk0++' -e 's/p3/msd/g' -e 's+p2+/+g' -e 's+p1+/boot+g'`' '; mount | grep $i | awk '{print $NF}' | awk -F, '{print $1}' | sed 's/(//g'; done ")
+                    sdcard = x.read()
+                    text = f"Temp {temps}\n{sdcard}"
                 screen += 1
                 draw.multiline_text((0, 0), text, font=font, fill="white")
                 time.sleep(options.interval)
