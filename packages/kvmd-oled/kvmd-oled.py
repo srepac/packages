@@ -52,27 +52,6 @@ _logger = logging.getLogger("oled")
 
 
 # =====
-def _get_ip() -> Tuple[str, str]:
-    try:
-        gws = netifaces.gateways()
-        if "default" not in gws:
-            raise RuntimeError(f"No default gateway: {gws}")
-
-        iface = ""
-        for proto in [socket.AF_INET, socket.AF_INET6]:
-            if proto in gws["default"]:
-                iface = gws["default"][proto][1]
-                break
-        else:
-            raise RuntimeError(f"No iface for the gateway {gws['default']}")
-
-        for addr in netifaces.ifaddresses(iface).get(proto, []):
-            return (iface, addr["addr"])
-    except Exception:
-        # _logger.exception("Can't get iface/IP")
-        return ("<no-iface>", "<no-ip>")
-
-
 def _get_uptime() -> str:
     uptime = datetime.timedelta(seconds=int(time.time() - psutil.boot_time()))
     pl = {"days": uptime.days}
@@ -120,30 +99,30 @@ def main() -> None:
             with canvas(device) as draw:
                 ### srepac changes to have 4 different screens using modulo division
                 rem = screen % 4
-                if rem == 0:   ### first page is model number, date, image version (v2-hdmi, v2-hdmiusb, etc...), and #users
-                    x = os.popen(" pistat | grep Pi | awk '{print $4, $5, $6, $7, $8, $9}' | sed -e 's/Model//g' -e 's/  / /g' ")
+                if rem == 0:   ### first page is fqdn, model number, image/kvmd version (v2-hdmi, v2-hdmiusb, etc...)
+                    x = os.popen(" pistat | grep Pi | awk '{print $4, $5, $6, $7, $8, $9}' | sed -e 's/ Model //g' -e 's/  / /g'")
                     model = x.read().replace('\n', '')
                     x = os.popen(" pacman -Q | grep kvmd-platform | cut -d'-' -f3,4 ")
                     img = x.read().replace('\n', '')
                     x = os.popen(" pacman -Q | grep kvmd' ' | awk '{print $NF}' | sed 's/-[1-9]//g' ")
                     kvmdver = x.read().replace('\n', '')
                     text = f"{socket.getfqdn()}\nPi {model}\n{img} v{kvmdver}"
-                elif rem == 1:  ### 2nd page is uptime, load, and cpu/gpu temps
+                elif rem == 1:  ### 2nd page is uptime, # of users, load, and date 
                     x = os.popen(" date +\"%D %H:%M %Z\" ")
                     date = x.read().replace('\n', '')
-                    x = os.popen(" uptime | awk -F\"user\" '{print $1}' | awk '{print $NF}' ")
+                    x = os.popen(" num=$( uptime | awk -F'user' '{print $1}' | awk '{print $NF}' ); if [[ $num -gt 1 || $num -eq 0 ]]; then echo $num users; else echo $num user; fi ")
                     users = x.read().replace('\n', '')
                     load1, load5, load15 = os.getloadavg()
-                    text = f"{_get_uptime()}, {users} users\n{load1}, {load5}, {load15}\n{date}"
-                elif rem == 2:  ### 3rd page is eth/wlan ifaces+IP, and wlan SSID
+                    text = f"{_get_uptime()}, {users}\n{load1}, {load5}, {load15}\n{date}"
+                elif rem == 2:  ### 3rd page is eth/tailscale ifaces+IP, and wlan SSID
                     x = os.popen(" netctl-auto list | grep '*' | awk -F\- '{print $NF}' ")
                     ssid = x.read().replace('\n', '')
-                    ethip = os.popen(" ip -o a | egrep 'eth|wlan' | grep -v inet6 | awk '{print $2, $4}' | cut -d'/' -f1 ")
+                    ethip = os.popen(" ip -o a | egrep 'eth|tailscale' | grep -v inet6 | awk '{print $2, $4}' | cut -d'/' -f1 | sed 's/tailscale/ts/g' ")
                     text = f"{ethip.read()}SSID {ssid}"
                 else:  ### last page shows cpu/gpu temps and microSD disk % usage and free space + ro/rw status
                     x = os.popen(" pistat | grep temp | cut -d' ' -f 3 ")
                     temps = x.read().replace('\n', ' ')
-                    x = os.popen(" for i in `mount | grep mmc | awk '{print $1}' | sort | grep -v p1`; do echo -n `df -h $i |  grep -v Filesystem | sort | awk '{print $1, $5, $4}' | sed -e 's+/dev/mmcblk0++' -e 's/p3/msd/g' -e 's+p2+/+g' -e 's+p1+/boot+g'`' '; mount | grep $i | awk '{print $NF}' | awk -F, '{print $1}' | sed 's/(//g'; done ")
+                    x = os.popen(" for i in `mount | grep mmc | awk '{print $1}' | sort | grep -v p1`; do echo -n `df -h $i | grep -v Filesystem | sort | awk '{print $1, $5, $4}' | sed -e 's+/dev/mmcblk0++' -e 's/p3/msd/g' -e 's+p2+/+g' -e 's+p1+/boot+g'`' '; mount | grep $i | awk '{print $NF}' | awk -F, '{print $1}' | sed 's/(//g'; done ")
                     sdcard = x.read()
                     text = f"Temp {temps}\n{sdcard}"
                 screen += 1
