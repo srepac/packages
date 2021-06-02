@@ -123,10 +123,8 @@ def main() -> None:
                 elif rem == 1:  ### 2nd page shows both eth/wlan IP, SSID, and cpu/gpu temps
                     x = os.popen(" pistat | grep temp | cut -d' ' -f 3 ")
                     temps = x.read().replace('\n', ' ')
-                    x = os.popen(" netctl-auto list | grep '*' | awk -F\- '{print $NF}' ")
-                    ssid = x.read().replace('\n', '')
-                    ethip = os.popen(" ip -o a | egrep 'br|eth|wlan|tailscale' | grep -v inet6 | awk '{print $2, $4}' | cut -d'/' -f1 | sed -e 's/tailscale/ts/g' | sort ")
-                    text = f"{ethip.read()}SSID {ssid}\nTemp {temps}"
+                    connstatus = os.popen(" count=0; ethip=$( ip -o a show | grep -v inet6 | awk '{print $2, $4}' | cut -d'/' -f1 | egrep 'eth|br' ); ssid=$( netctl-auto list | grep '*' | awk -F\- '{print $NF}' ) ; if [[ \"$ethip\" != \"\" ]]; then printf \"%s %s\n\" $ethip; count+=1; else echo \"LAN not connected\"; fi; if [[ \"$ssid\" == \"\" ]]; then echo \"Wifi not connected\" ; else echo \"SSID $ssid\"; count+=1; fi ; if [[ $count -gt 0 ]]; then printf \"%s %s\n\" $( ip -o a show | grep -v inet6 | awk '{print $2, $4}' | cut -d'/' -f1 | egrep 'tailscale|wlan' | sed 's/tailscale/ts/g' ); fi ")
+                    text = f"Temp {temps}\n{connstatus.read()}"
                 else:  ### last page shows uptime, load avgs, and sd card usage % and free space
                     x = os.popen(" for i in `mount | grep mmc | awk '{print $1}' | sort | grep -v p1`; do echo -n `df -h $i | grep -v Filesystem | sort | awk '{print $1, $5, $4}' | sed -e 's+/dev/mmcblk0++g' -e 's+p3+msd+' -e 's+p2+/+' -e 's+p1+/boot+'`' '; mount | grep $i | awk '{print $NF}' | awk -F, '{print $1}' | sed 's/(//g'; done ")
                     sdcard = x.read()
