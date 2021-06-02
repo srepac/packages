@@ -115,7 +115,7 @@ def main() -> None:
                     load1, load5, load15 = os.getloadavg()
                     text = f"{_get_uptime()}, {users}\n{load1}, {load5}, {load15}\n{date}"
                 elif rem == 2:  ### 3rd page shows connection status (i.e. LAN not connected OR Wifi not connected or eth IP and SSID for wifi, if connected and tailscale IP)
-                    connstatus = os.popen(" count=0; ethip=$( ip -o a show | grep -v inet6 | egrep 'eth' | awk '{print $2, $4}' | cut -d'/' -f1 ); ssid=$( netctl-auto list | grep '*' | awk -F\- '{print $NF}' ) ; if [[ \"$ethip\" != \"\" ]]; then printf \"%s %s\n\" $ethip; count+=1; else echo \"LAN not connected\"; fi; if [[ \"$ssid\" == \"\" ]]; then echo \"Wifi not connected\" ; else echo \"SSID $ssid\"; count+=1; fi ; if [[ $count -gt 0 ]]; then echo $( ip -o a | egrep tailscale | grep -v inet6 | awk '{print $2, $4}' | cut -d'/' -f1 | sed 's/tailscale/ts/g' ); fi ")
+                    connstatus = os.popen(" count=0; ethip=$( ip -o a show | grep -v inet6 | awk '{print $2, $4}' | cut -d'/' -f1 | egrep 'br|eth' ); ssid=$( netctl-auto list | grep '*' | awk -F\- '{print $NF}' ) ; if [[ \"$ethip\" != \"\" ]]; then printf \"%s %s\n\" $ethip; count+=1; else echo \"LAN not connected\"; fi; if [[ \"$ssid\" == \"\" ]]; then echo \"Wifi not connected\" ; else echo \"SSID $ssid\"; count+=1; fi ; if [[ $count -gt 0 ]]; then echo $( ip -o a | grep -v inet6 | awk '{print $2, $4}' | cut -d'/' -f1 | grep tailscale | sed 's/tailscale/ts/g' ); fi ")
                     text = f"{connstatus.read()}"
                 else:  ### last page shows cpu/gpu temps and microSD disk % usage and free space + ro/rw status
                     x = os.popen(" pistat | grep temp | cut -d' ' -f 3 ")
