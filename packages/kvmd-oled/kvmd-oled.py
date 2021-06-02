@@ -35,22 +35,22 @@ import time
 ### srepac changes
 import os
 ###
-
+ 
 from typing import Tuple
-
+ 
 import netifaces
 import psutil
-
+ 
 from luma.core import cmdline
 from luma.core.render import canvas
-
+ 
 from PIL import ImageFont
-
-
+ 
+ 
 # =====
 _logger = logging.getLogger("oled")
-
-
+ 
+ 
 # =====
 def _get_uptime() -> str:
     uptime = datetime.timedelta(seconds=int(time.time() - psutil.boot_time()))
@@ -58,36 +58,36 @@ def _get_uptime() -> str:
     (pl["hours"], rem) = divmod(uptime.seconds, 3600)
     (pl["mins"], pl["secs"]) = divmod(rem, 60)
     return "{days}d {hours}h {mins}m".format(**pl)
-
-
+ 
+ 
 # =====
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     logging.getLogger("PIL").setLevel(logging.ERROR)
-
+ 
     parser = cmdline.create_parser(description="Display FQDN and IP on the OLED")
     parser.add_argument("--font", default="/usr/share/fonts/TTF/ProggySquare.ttf", help="Font path")
-
+ 
     ### original code
     #parser.add_argument("--font-size", default=16, type=int, help="Font size")
     ### srepac change - to make it fit into 3 lines on small oled -- each row limited to 19 chars
     parser.add_argument("--font-size", default=15, type=int, help="Font size")
-
+ 
     parser.add_argument("--interval", default=5, type=int, help="Screens interval")
     options = parser.parse_args(sys.argv[1:])
     if options.config:
         config = cmdline.load_config(options.config)
         options = parser.parse_args(config + sys.argv[1:])
-
+ 
     device = cmdline.create_device(options)
     font = ImageFont.truetype(options.font, options.font_size)
-
+ 
     display_types = cmdline.get_display_types()
     if options.display not in cmdline.get_display_types()["emulator"]:
         _logger.info("Iface: %s", options.interface)
     _logger.info("Display: %s", options.display)
     _logger.info("Size: %dx%d", device.width, device.height)
-
+ 
     try:
         ### srepac changes to show during service start up
         with canvas(device) as draw:
@@ -114,11 +114,9 @@ def main() -> None:
                     users = x.read().replace('\n', '')
                     load1, load5, load15 = os.getloadavg()
                     text = f"{_get_uptime()}, {users}\n{load1}, {load5}, {load15}\n{date}"
-                elif rem == 2:  ### 3rd page is eth/tailscale ifaces+IP, and wlan SSID
-                    x = os.popen(" netctl-auto list | grep '*' | awk -F\- '{print $NF}' ")
-                    ssid = x.read().replace('\n', '')
-                    ethip = os.popen(" ip -o a | egrep 'eth|tailscale' | grep -v inet6 | awk '{print $2, $4}' | cut -d'/' -f1 | sed 's/tailscale/ts/g' ")
-                    text = f"{ethip.read()}SSID {ssid}"
+                elif rem == 2:  ### 3rd page shows connection status (i.e. LAN not connected OR Wifi not connected or eth IP and SSID for wifi, if connected and tailscale IP)
+                    connstatus = os.popen(" count=0; ethip=$( ip -o a show | grep -v inet6 | egrep 'eth' | awk '{print $2, $4}' | cut -d'/' -f1 ); ssid=$( netctl-auto list | grep '*' | awk -F\- '{print $NF}' ) ; if [[ \"$ethip\" != \"\" ]]; then printf \"%s %s\n\" $ethip; count+=1; else echo \"LAN not connected\"; fi; if [[ \"$ssid\" == \"\" ]]; then echo \"Wifi not connected\" ; else echo \"SSID $ssid\"; count+=1; fi ; if [[ $count -gt 0 ]]; then echo $( ip -o a | egrep tailscale | grep -v inet6 | awk '{print $2, $4}' | cut -d'/' -f1 | sed 's/tailscale/ts/g' ); fi ")
+                    text = f"{connstatus.read()}"
                 else:  ### last page shows cpu/gpu temps and microSD disk % usage and free space + ro/rw status
                     x = os.popen(" pistat | grep temp | cut -d' ' -f 3 ")
                     temps = x.read().replace('\n', ' ')
@@ -130,6 +128,7 @@ def main() -> None:
                 time.sleep(options.interval)
     except (SystemExit, KeyboardInterrupt):
         pass
-
+ 
 if __name__ == "__main__":
     main()
+ 
