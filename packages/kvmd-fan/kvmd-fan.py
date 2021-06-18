@@ -11,6 +11,19 @@
 #
 # ExecStart=/usr/bin/python3 /usr/bin/kvmd-fan.py &
 #
+# The final kvmd-fan.service file should look like this when you are done:
+""" 
+[Unit]
+Description=Pi-KVM - The fan control daemon
+After=systemd-modules-load.service
+ 
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /usr/bin/kvmd-fan.py &
+ 
+[Install]
+WantedBy=multi-user.target
+"""
 
 import time
 import os
