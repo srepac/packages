@@ -31,7 +31,7 @@ import os
 level_temp = 0
 
 while True:
-    cmd = os.popen('vcgencmd measure_temp').readline()
+    cmd = os.popen('/opt/vc/bin/vcgencmd measure_temp').readline()
     CPU_TEMP = cmd.replace("temp=","").replace("'C\n","")
     temp = float(CPU_TEMP)
 
