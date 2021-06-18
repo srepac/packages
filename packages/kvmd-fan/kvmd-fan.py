@@ -6,7 +6,7 @@
 #
 # ExecStart=/bin/bash -c "gpio -g mode 12 pwm && gpio -g pwm 12 127"
 #
-# I want to modify the service to run this script instead which varies PWM
+# You need to modify the service to run this script instead which varies PWM
 # ... fan level depending on temperature:
 #
 # ExecStart=/usr/bin/python3 /usr/bin/kvmd-fan.py &
