@@ -73,5 +73,5 @@ while True:
             os.popen(" /bin/bash -c 'gpio -g mode 12 pwm && gpio -g pwm 12 250' ")
 
     print(DATE, CPU_TEMP, PWM)
-    time.sleep(5)
+    time.sleep(1)
 
