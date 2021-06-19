@@ -18,7 +18,7 @@ Description=Pi-KVM - The fan control daemon
 After=systemd-modules-load.service
  
 [Service]
-Type=simple
+Type=exec
 ExecStart=/usr/bin/python3 /usr/bin/kvmd-fan.py
  
 [Install]
