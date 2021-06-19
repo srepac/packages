@@ -64,7 +64,7 @@ while True:
             level_temp = 55
             PWM = 250
 
-        os.popen(' /bin/bash -c "gpio -g mode 12 pwm && gpio -g pwm 12 {0}" '.format(PWM))
+        os.popen( '/bin/bash -c "gpio -g mode 12 pwm && gpio -g pwm 12 {0}"'.format(PWM) )
         print(DATE, CPU_TEMP, PWM)
 
     time.sleep(1)
