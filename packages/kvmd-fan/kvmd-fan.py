@@ -40,29 +40,23 @@ while True:
     # PWM range is 0-1023
     if abs(temp - level_temp) >= 1:
         if temp <= 37:
-            level_temp = 37
             PWM = 75
         elif temp <= 41:
-            level_temp = 41
             PWM = 100
         elif temp <= 45:
-            level_temp = 45
             PWM = 125
         elif temp <= 47:
-            level_temp = 47
             PWM = 150
         elif temp <= 49:
-            level_temp = 49
             PWM = 175
         elif temp <= 51:
-            level_temp = 51
             PWM = 200
         elif temp <= 53:
-            level_temp = 53
             PWM = 225
         else:
-            level_temp = 55
             PWM = 250
+
+        level_temp = int(temp)
 
         os.popen( '/bin/bash -c "gpio -g mode 12 pwm && gpio -g pwm 12 {0}"'.format(PWM) )
         print(DATE, CPU_TEMP, PWM)
