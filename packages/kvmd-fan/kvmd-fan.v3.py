@@ -37,10 +37,11 @@ import time
 import os
 
 # Default threshold settings
-uload_thold = 60   # USB cpu%
-cload_thold = 20   # CSI cpu%
+usb_thold = 60   # USB cpu%
+csi_thold = 20   # CSI cpu%
 load_thold = 4
 streams_thold = 2
+CRIT_PWM = 1000
 
 level_temp = 0
 spins_up = 0
@@ -72,12 +73,12 @@ while True:
     #       csi bridge doesn't have this issue as the stream processing load is offloaded to the toshiba chip
     # Meet requirements as per below -> use "LOAD" fan profile, else use IDLE fan profile based on USB dongle or CSI bridge
     if USBHDMI == 1:
-        if (total_load >= load_thold or STREAMS >= streams_thold) and (uload >= uload_thold) :
+        if (total_load >= load_thold or STREAMS >= streams_thold) and (uload >= usb_thold) :
             load_factor = 1
         else:
             load_factor = 0
     else:                   # CSI bridge
-        if total_load >= load_thold or STREAMS >= streams_thold or uload >= cload_thold :
+        if total_load >= load_thold or STREAMS >= streams_thold or uload >= csi_thold :
             load_factor = 1
         else:
             load_factor = 0
@@ -106,7 +107,7 @@ while True:
             PWM = 0                 # turn off fan
             spins_up = 0
 
-        if temp >= 80 : PWM = 800   # Critical temperature
+        if temp >= 80 : PWM = CRIT_PWM   # Critical temperature exceeded
 
         level_temp = int(temp)      # required to compare previous temperature reading to new reading
 
@@ -115,3 +116,5 @@ while True:
         print(text)
 
     time.sleep(1)
+
+    
