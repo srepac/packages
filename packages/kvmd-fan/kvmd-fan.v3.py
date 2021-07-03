@@ -6,7 +6,7 @@
 # Trigger to use LOAD fan profile:
 #
 #  CSI: ustreamer/janus load >= 20%  -OR-  https/vnc connections >=2  -OR-  1min and 5min load avgs total >= 4
-#  USB: ustreamer/janus load >= 70%  -AND-  (https/vnc connections >=2  -OR-  1min and 5min load avgs total >= 4)
+#  USB: ustreamer/janus load >= 60%  -AND-  (https/vnc connections >=2  -OR-  1min and 5min load avgs total >= 4)
 #
 # The original kvmd-fan service just set pwm to 127:
 #
@@ -37,7 +37,8 @@ import time
 import os
 
 # Default threshold settings
-uload_thold = 70
+uload_thold = 60   # USB cpu%
+cload_thold = 20   # CSI cpu%
 load_thold = 4
 streams_thold = 2
 
@@ -67,17 +68,16 @@ while True:
     load1, load5, load15 = os.getloadavg()
     total_load = load1 + load5
 
-    # NOTE: usb dongle forces Pi to use 70% or higher cpu with/without streams connected in order to process streams
+    # NOTE: usb dongle forces Pi to use 60% or higher cpu with/without streams since v2 dongle image relies on cpu
     #       csi bridge doesn't have this issue as the stream processing load is offloaded to the toshiba chip
-    # Meet requirements as per below - use "LOAD" fan profile, else use IDLE fan profile based on USB dongle or CSI bridge
+    # Meet requirements as per below -> use "LOAD" fan profile, else use IDLE fan profile based on USB dongle or CSI bridge
     if USBHDMI == 1:
         if (total_load >= load_thold or STREAMS >= streams_thold) and (uload >= uload_thold) :
             load_factor = 1
         else:
             load_factor = 0
     else:                   # CSI bridge
-        uload_thold = 20    # change uload threshold for CSI bridge to 20% or higher
-        if total_load >= load_thold or STREAMS >= streams_thold or uload >= uload_thold :
+        if total_load >= load_thold or STREAMS >= streams_thold or uload >= cload_thold :
             load_factor = 1
         else:
             load_factor = 0
@@ -115,4 +115,3 @@ while True:
         print(text)
 
     time.sleep(1)
-
