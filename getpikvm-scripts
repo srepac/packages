@@ -1,0 +1,103 @@
+#!/bin/bash
+# Written by srepac to make it easy to download the files in pastebin
+#
+check-dos2unix() {
+    # default format of pastebin raw files are in msdos format
+    # dos2unix package is required to convert the msdos formatted files to unix format
+    # ... so that you can run the scripts properly in unix
+    if [[ $( which dos2unix | wc -l ) -lt 1 ]]; then
+        echo "Missing [ dos2unix ] package.  Installing package..."
+        yes | pacman -S dos2unix
+    fi
+} # end check-dos2unix
+
+get-pastes() {
+    echo -n "Getting list of pastes from https://pastebin.com/u/srepac ..."
+    TMPFILE="/tmp/srepac.pastes"; rm -f $TMPFILE
+    wget https://pastebin.com/u/srepac -O $TMPFILE 2> /dev/null > /dev/null
+
+    SCRIPTS="/tmp/srepac.scripts"; rm -f $SCRIPTS
+    grep href $TMPFILE | grep /td | egrep -v 'Untitled|SAMPLE|archive' | awk -F\> '{print $1 "," $2}' | sed -e 's/<a href="//g' -e 's/"//g' -e 's/<\/a//g' > $SCRIPTS
+    printf " done\n\n"
+} # end get-pastes function
+
+show-links() {
+    printf "\t%-10s\t%s\n" LINK NAME/TITLE
+    printf "\t%-10s\t%s\n" "----------" "---------------------"
+    for LINK in $( cat $SCRIPTS | awk -F, '{print $1}' | sed -e 's/\///g' ); do
+        NAME=$( grep $LINK $SCRIPTS | awk -F, '{print $2}' )
+        printf "\t%-10s\t%s\n" $LINK "$NAME"
+    done
+} # end show-links function
+
+get-file() {
+   FILE="$1"
+   echo
+   echo "-> wget https://pastebin.com/raw/$LINK -O $FILE"
+   wget https://pastebin.com/raw/$LINK -O $FILE 2> /dev/null > /dev/null
+
+   dos2unix $FILE
+
+   if [[ $( echo $FILE | grep \.yaml | wc -l ) -ne 1 ]]; then
+        chmod +x $FILE
+        echo "-> Script [ $FILE ] is now executable. To run script, type ./$FILE"
+   else
+        echo "-> YAML [ $FILE ] is now ready.  Please copy to /etc/kvmd/override.yaml and reboot"
+   fi
+} # end get-file function
+
+get-all-files() {
+   for LINK in $( cat $SCRIPTS | awk -F, '{print $1}' | sed -e 's/\///g' ); do
+        GETNAME=$( grep $LINK $SCRIPTS | awk -F, '{print $2}' )
+        get-file $GETNAME
+   done
+} # end get-all-files fn
+
+try-again() {
+   echo "Link name you want is not available.  Try agan."
+   echo && show-links
+}
+
+are-you-sure() {
+   read -p "Getting ALL files option set.  Are you sure? [y/n] " SURE
+   case $SURE in
+     Y|y)
+       get-all-files
+       exit 0
+       ;;
+     N|n)
+       invalidinput=1
+       ;;
+     *)
+       invalidinput=1
+       ;;
+   esac
+} # end are-you-sure fn
+
+### MAIN STARTS HERE ###
+rw && check-dos2unix && get-pastes
+
+if [[ "$1" == "ALL" || "$1" == "all" ]]; then
+   are-you-sure
+fi
+
+echo && show-links
+
+# Keep downloading files until QUIT or ALL is entered
+invalidinput=1
+while [ $invalidinput -eq 1 ]; do
+   echo && read -p "Which LINK do you want to get? Type QUIT to exit -> " GETLINK
+   LINK="$GETLINK"
+   if [[ "$LINK" == "ALL" || "$LINK" == "all" ]]; then
+        invalidinput=0
+        are-you-sure
+   elif [[ "$LINK" == "QUIT" || "$LINK" == "quit" ]]; then
+        invalidinput=0
+   elif [[ $( grep $LINK, $SCRIPTS | wc -l ) -ge 1 ]]; then
+        GETNAME=$( grep $LINK, $SCRIPTS | awk -F, '{print $2}' )
+        get-file $GETNAME
+   else
+        try-again
+   fi
+done
+ro
