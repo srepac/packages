@@ -1,0 +1,42 @@
+#!/bin/bash
+# Prior to this script, upstream package updates via pacman -Syu would break or completely remove wifi on the Pi-KVM.
+# Since Pi-KVM is just an app that rides on top of Arch Linux, I believe we should only update the app.
+# Script was created so that only the application packages for Pi-KVM are updated; no more missing wifi adapter
+###
+# I have been using this since kvmd v2.29 and have updated all the way to current v2.54 as of 04/19/21
+###
+# UPDATES that broke/borked functionality:  
+#    2/25/21 -- arch kernel update completely removed wifi adapters on both pi4 and zero w
+#    4/13/21 -- another bad arch update killed kvmd nginx -- python-3.9.3-1   kvmd 2.43
+#            -- caused error 500/502 when accessing webui
+#    4/15/21 -- another bad arch update killed kvmd nginx -- python-aiohttp   kvmd 2.44
+###
+# If you need to update from 2.43, 44, 45 to v2.50 or higher, you need to delete python and python-aiohttp as per #news article below.
+# rw; pacman -Syy; pacman -Sdd python python-aiohttp, pacman -Syu; reboot
+# https://discord.com/channels/580094191938437144/712960053174599712/832283999102828575
+# Afterwards, you can continue using this update script.
+###
+# USING this script to update, none of my pi-kvms were affected by any of the bad arch updates
+###
+#set -x
+TMPFILE="/tmp/pacmanquery"; /bin/rm -f $TMPFILE
+pacman -Q | awk '{print $2, $1}' > $TMPFILE
+
+echo "Current version of kvmd/ustreamer packages installed"
+printf "%-10s\t%s\n" $( egrep 'kvmd|ustream' $TMPFILE )
+echo
+
+# Get which kvmd/ustreamer packages to update (this works on any pikvm)
+## updated on 5/8/21 -- don't update oled in case you have my custom kvmd-oled script installed
+PACKAGES=$( egrep 'ustreamer|kvmd' $TMPFILE | awk '{print $2}' | sed 's/$/ /g' | grep -v oled )
+
+rw
+pacman -Syy
+# added check to see if any custom python pikvm packages installed (from v2.43, 2.44, and 2.45)
+if [[ $( grep python $TMPFILE | grep pikvm | wc -l ) -gt 0 ]]; then
+	echo "Custom pikvm python packages found.  Need to delete them before updating to newer pikvm version."
+	yes | pacman -Sdd python python-aiohttp
+fi
+pacman -S $PACKAGES
+rm -f $TMPFILE
+ro

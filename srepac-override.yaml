@@ -1,0 +1,55 @@
+### srepac's /etc/kvmd/override.yaml ###
+# For use only with Pi-KVM
+### ADVANCED USERS ONLY ###
+kvmd:
+    streamer:
+        forever: true
+        cmd_append: [--slowdown]                    # for usb-hdmi only so that target PC display works w/o rebooting
+        ### this section is for use with webrtc/h.264 -- up to resolution: line
+        h264_bitrate:
+            default: 5000
+        cmd_append:
+            - "--h264-sink=kvmd::ustreamer::h264"   # requires gpu_mem=256 in /boot/config.txt for usb dongle
+            - "--h264-sink-mode=0660"
+            - "--h264-bitrate={h264_bitrate}"
+            - "--h264-gop={h264_gop}"
+        ###
+        resolution:
+            default: 1280x720                       # default resolution I use in webui - usb-hdmi only
+# https://github.com/pikvm/pikvm/blob/master/pages/cookbook.md#mass-storage-drives
+# Enables use of a read-writable USB to mount to host (useful if you want to have a consolidated USB tools/apps drive)
+# ... NOTE:  This is only managed through terminal -- use usb-flash-mount.sh and eject-flash.sh
+otg:
+    devices:
+        drives:
+            enabled: true  # Set it to true to enable
+            count: 2  # +2 drive, default value is 1
+            default:  # Default configuration for all extra drives
+                cdrom: false  # Default value (false for the generic flash drive)
+                rw: true # Read-only by default
+# https://github.com/pikvm/pikvm/blob/master/pages/cookbook.md#enable-ethernet-over-usb-network
+# For USB ethernet passthrough to host/server with routing -- don't forget to run the below command before rebooting
+# echo "net.ipv4.ip_forward = 1" > /etc/sysctl.d/99-kvmd-extra.conf && systemctl enable kvmd-otgnet
+        ethernet:
+            enabled: true
+# UNCOMMENT the driver you want below (ecm vs. rndis) and COMMENT out (via pre-pending # in front of) the one you don't want
+            #driver: rndis    # use with winXP/2K machines and older
+            driver: ecm       # recommended for all other OS's post year 2000
+            host_mac: 48:6f:73:74:15:43     # recommend you change second to last 128-byte of mac to match net: entry below
+            kvm_mac: 42:61:64:55:15:42      # ... same as above -OR- you can remove these two entries to create a random one 
+# Download ecm driver for win10 using the below URL
+# https://developer.samsung.com/mobile/android-usb-driver.html   NOTE:  After installing driver, reboot win10 host
+# vendor_id and product_id below are required so as to reflect the samsung usb driver above
+    vendor_id: 1256
+    product_id: 42251
+otgnet:
+    firewall:
+        allow_tcp: [80, 443]
+        forward_iface: wlan0                # wlan0 works for either pi 4 or zero
+    commands:
+        post_start_cmd_append:
+        - "--dhcp-option=6,1.1.1.1,1.0.0.1" # DNS servers to passthru to controlled host
+    iface:
+        ip_cmd:
+            - /usr/bin/ip
+        net: 10.15.0.0/28                   # network to share between pi-kvm and controlled host/server

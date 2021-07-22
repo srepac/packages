@@ -1,0 +1,17 @@
+#!/bin/bash
+# Put this file into /usr/local/bin then you can run pikvm-info anywhere while logged in to Pi-KVM terminal/ssh
+#
+uptime
+TMPFILE="/tmp/pacmanquery"; /bin/rm -f $TMPFILE
+pacman -Q | awk '{print $2, $1}' > $TMPFILE
+
+# pistat is built-in to pi-kvm (/usr/local/bin)
+pistat && echo
+
+printf "%-18s\t%s\n" "Version" "Package-Name" "----------------------" "-----------------------------"
+
+PACKAGES="firmware bootloader kvmd ustreamer nginx wpa wireless"
+for PKG in $( echo $PACKAGES ); do
+        printf "%-18s\t%s\n" $(grep $PKG $TMPFILE | sed 's/-[1-9]//g')
+done
+/bin/rm -f $TMPFILE

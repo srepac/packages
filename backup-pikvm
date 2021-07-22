@@ -1,0 +1,42 @@
+#!/bin/bash
+# This script backs up critical files into your /var/lib/kvmd/msd/backups directory
+# Recommend you copy the .tar file into another server in case you have to re-image
+# ... and restore from backup by first copying the .tar file into / and performing:
+#   cd /
+#   tar xvf hostname-YYYYMMDD.tar
+#
+# List of directories/files and reason why backup is required
+#
+# /etc/kvmd             all KVMD specific custom configs (contains web admin user/password)
+# /usr/local/bin/       backup pistat, _first_boot, etc...
+# /etc/pacman.conf      in case you have ignorePkg entries or custom configs
+# /root/                root homedir (contains configs/scripts, pub/private ssh and authorized_keys)
+# /etc/netctl/wlan0*    all your wifi connections that you were currently using
+# /etc/systemd/network  For eth0 custom configs (static/dhcp)
+# /etc/ssh/ssh_host*    SSH host keys so you don't have to re-add to your knownhosts file
+# /etc/shadow           Contains your updated root password
+# /etc/motd             Message of the day banner
+# /etc/fstab            Filesystem table (in case you have NFS mounts)
+# /etc/hostname         Custom hostname
+# /etc/sudoers.d        In case you gave other users the ability to run sudo
+# /etc/localtime        Custom local timezone
+#
+BACKUPDIR="/var/lib/kvmd/msd/backups"
+mount -o remount,rw /var/lib/kvmd/msd
+mkdir -p $BACKUPDIR
+
+# Create backup file name as hostname-YYYYMMDD.tar file
+BACKUPFILE="$BACKUPDIR/$(hostname)-$(date +%Y%m%d).tar"
+
+CONTENTS="/etc/kvmd/ /usr/local/bin/ /etc/pacman.conf /root/ /etc/netctl/wlan* /etc/systemd/network/ /etc/ssh/ssh_host_* /etc/shadow /etc/motd /etc/fstab /etc/hostname /etc/sudoers.d/ /etc/localtime"
+BACKUPCMD="tar cf $BACKUPFILE $CONTENTS"
+
+# Backup critical files so you can easily rebuild your PiKVM by untar'ing the file
+echo "Creating backup file $BACKUPFILE with contents of $CONTENTS"
+
+$BACKUPCMD 2> /dev/null
+
+echo
+echo "ls -l $BACKUPDIR"
+ls -l $BACKUPDIR
+mount -o remount,ro /var/lib/kvmd/msd
