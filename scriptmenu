@@ -38,7 +38,7 @@ dl-getpikvmscripts() {
   CMD=$SCRIPTDIR/$SCRIPTNAME
   if [ ! -e $CMD ]; then
     rw
-    wget -O $CMD https://pastebin.com/raw/vqwK9uXV > /dev/null 2> /dev/null
+    wget -O $CMD https://raw.githubusercontent.com/srepac/packages/master/getpikvm-scripts > /dev/null 2> /dev/null
     dos2unix $CMD > /dev/null 2> /dev/null; chmod +x $CMD
     ro
   fi
