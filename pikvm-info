@@ -10,7 +10,8 @@ pistat && echo
 
 printf "%-18s\t%s\n" "Version" "Package-Name" "----------------------" "-----------------------------"
 
-PACKAGES="firmware bootloader kvmd ustreamer nginx wpa wireless"
+#PACKAGES="firmware bootloader kvmd ustreamer nginx wpa wireless"
+PACKAGES="pikvm kvmd ustreamer nginx wpa wireless"
 for PKG in $( echo $PACKAGES ); do
         printf "%-18s\t%s\n" $(grep $PKG $TMPFILE | sed 's/-[1-9]//g')
 done
