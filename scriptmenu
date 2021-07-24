@@ -22,8 +22,9 @@
 #                    ... enable only for NFS users that want image backup
 #                    v1.12 setup additional global variables
 #                    v1.13 download getpikvm-scripts automatically during first run
+#                    v1.14 different source location of getpikvm-scripts
 #
-# VERSION=1.13
+# VERSION=1.14
 DIALOG="$( which dialog ) --clear"
 SCRIPTDIR="/usr/local/bin"
 #
@@ -31,6 +32,7 @@ HOSTFILE="/etc/hostname"
 META="/etc/kvmd/meta.yaml"
 OVERRIDE="/etc/kvmd/override.yaml"
 CACHEDIR="/var/cache/pacman/pkg"
+LOCALTIME="/etc/localtime"
 
 
 dl-getpikvmscripts() {
@@ -38,14 +40,14 @@ dl-getpikvmscripts() {
   CMD=$SCRIPTDIR/$SCRIPTNAME
   if [ ! -e $CMD ]; then
     rw
-    wget -O $CMD https://raw.githubusercontent.com/srepac/packages/master/getpikvm-scripts > /dev/null 2> /dev/null
+    wget -O $CMD $WEBSITE/$SCRIPTNAME > /dev/null 2> /dev/null
     dos2unix $CMD > /dev/null 2> /dev/null; chmod +x $CMD
     ro
   fi
-} # end dl-getpikvmscripts 
+} # end dl-getpikvmscripts
 
 
-# show confirmation window (yes or no options only) -- reusable code 
+# show confirmation window (yes or no options only) -- reusable code
 actionreqwin() {  # default: 10 lines high and 70 chars wide
   HT=10
   WIDTH=70
@@ -120,7 +122,7 @@ do-something() {
   case $selection in
 
     about)
-      mesgwin  "About this program"  "Written by GitHub user @srepac as requested by @mdevaev\n\nProgram was created to address solutions to many PiKVM users' feature requests. If you'd like to request a feature, please paypal me at $EMAIL so that I can continue to make this feature complete.\n\nPlease send all feature requests to the same email address.\n\nOf course, donations are welcome, but not required.\n\nhttps://pastebin.com/u/srepac" 20 80
+      mesgwin  "About this program"  "Written by GitHub user @srepac as requested by @mdevaev\n\nProgram was created to address solutions to many PiKVM users' feature requests. If you'd like to request a feature, please paypal me at $EMAIL so that I can continue to make this feature complete.\n\nPlease send all feature requests to the same email address.\n\nOf course, donations are welcome, but not required.\n\n$link" 20 80
       ;;
 
     newhostname)
@@ -194,9 +196,9 @@ do-something() {
           if [ ! -e $NEWTIME ]; then
             mesgwin "INVALID TIMEZONE"  "\nYou picked an incorrect/incomplete timezone file.\n\n$NEWTIME"
           else
-            actionreqwin "ACTION REQUIRED" "\nPerform the following:\n\n  rm /etc/localtime\n  ln -s $NEWTIME /etc/localtime"
+            actionreqwin "ACTION REQUIRED" "\nPerform the following:\n\n  rm $LOCALTIME\n  ln -s $NEWTIME $LOCALTIME"
             if [ $? -eq 0 ]; then
-              rw; rm /etc/localtime; ln -s $NEWTIME /etc/localtime; ro
+              rw; rm $LOCALTIME; ln -s $NEWTIME $LOCALTIME; ro
             fi
           fi
         fi
@@ -263,14 +265,15 @@ end_clientid
       TITLE="Download srepac's scripts"
       CMD="$SCRIPTDIR/$SCRIPTNAME"
       if [ -e $CMD ]; then
-        actionreqwin  "ACTION REQUIRED"  "\nDownload all srepac public pastebin into /usr/local/bin/?"
+        actionreqwin  "ACTION REQUIRED"  "\nDownload all srepac scripts into $SCRIPTDIR?"
         if [ $? -eq 0 ]; then
-          cd /usr/local/bin/
-          $DIALOG --title "$TITLE" --prgbox "yes | $CMD all && ls -l /usr/local/bin" 40 100
+          # download location for all the downloaded scripts
+          cd $SCRIPTDIR
+          $DIALOG --title "$TITLE" --prgbox "yes | $CMD all && ls -l $SCRIPTDIR" 40 100
           cd -
         fi
       else
-        link="https://pastebin.com/raw/vqwK9uXV"
+        link="$WEBSITE/$SCRIPTNAME"
         filenotfound $link
         actionreqwin  "ACTION REQUIRED"  "\nDo you want to be able to copy/paste the link to download ${SCRIPTNAME}?"
         if [ $? -eq 0 ]; then
@@ -303,7 +306,7 @@ end_clientid
 
 
 main() {
-  link="https://pastebin.com/u/srepac"
+  link="https://pastebin.com/u/srepac\n$WEBSITE"
   tempfile=/tmp/test$$
   trap "rm -f $tempfile" 0 1 2 5 15
   if [[ ${rebootreqd} -eq 1 ]]; then
@@ -323,14 +326,14 @@ main() {
         "showhost"    "Show $HOSTFILE and $META" \
         "newhostname" "* Change $HOSTFILE and $META" \
         "dhcpfix"     "* Fix Different eth0 DHCP IP at boot" \
-        "timezone"    "Change /etc/localtime - $localtime" \
+        "timezone"    "Change $LOCALTIME - $localtime" \
         "freespace"   "Free up space from $CACHEDIR" \
         "yamlcheck"   "Check YAML syntax of $OVERRIDE" \
         "update"      "* Update PiKVM OS/packages - $updatemesg" \
         "reboot"      "Reboot PiKVM $rebootmsg" \
         "quit"        "Quit program" 2> $tempfile
 
-        ### uncomment and move the following line in between yamlcheck and update above if NFS user
+        ### move the following in between getall and update above if NFS user
         #"backup"      "Backup Full SD Card Image to NFS" \
 
   retval=$?
@@ -353,6 +356,7 @@ main() {
 
 #### MAIN STARTS HERE ####
 EMAIL="epascual@gmail.com"
+WEBSITE="https://kvmnerds.com:8443/PiKVM"
 
 # Check for the latest kvmd version from github
 LATESTKVMD="/tmp/kvmd.version"; /bin/rm -f $LATESTKVMD
