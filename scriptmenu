@@ -333,7 +333,7 @@ main() {
         "reboot"      "Reboot PiKVM $rebootmsg" \
         "quit"        "Quit program" 2> $tempfile
 
-        ### move the following in between getall and update above if NFS user
+        ### uncomment and move the following in between getall and update above if NFS user
         #"backup"      "Backup Full SD Card Image to NFS" \
 
   retval=$?
