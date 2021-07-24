@@ -153,7 +153,7 @@ do-something() {
     info)
       SCRIPTNAME=pikvm-info
       TITLE="PiKVM Information"
-      check-run-script "$TITLE" $SCRIPTNAME 40
+      check-run-script "$TITLE" $SCRIPTNAME 45
       ;;
 
     capture)
