@@ -1,6 +1,8 @@
 #!/bin/bash
 # Written by srepac to make it easy to download the files in pastebin
-#
+# ... this version uses a different website than pastebin
+# VERSION 2.0
+
 check-dos2unix() {
     # default format of pastebin raw files are in msdos format
     # dos2unix package is required to convert the msdos formatted files to unix format
@@ -12,29 +14,28 @@ check-dos2unix() {
 } # end check-dos2unix
 
 get-pastes() {
-    echo -n "Getting list of pastes from https://pastebin.com/u/srepac ..."
+    echo -n "Getting list of pastes from a different website than pastebin ..."
     TMPFILE="/tmp/srepac.pastes"; rm -f $TMPFILE
-    wget https://pastebin.com/u/srepac -O $TMPFILE 2> /dev/null > /dev/null
+    wget $WEBSITE -O $TMPFILE 2> /dev/null > /dev/null
 
     SCRIPTS="/tmp/srepac.scripts"; rm -f $SCRIPTS
-    grep href $TMPFILE | grep /td | egrep -v 'Untitled|SAMPLE|archive' | awk -F\> '{print $1 "," $2}' | sed -e 's/<a href="//g' -e 's/"//g' -e 's/<\/a//g' > $SCRIPTS
-    printf " done\n\n"
+    grep '<a href=\"[a-z]' $TMPFILE | cut -d'>' -f3 | cut -d'"' -f2 > $SCRIPTS
+    printf " done\n"
 } # end get-pastes function
 
 show-links() {
-    printf "\t%-10s\t%s\n" LINK NAME/TITLE
-    printf "\t%-10s\t%s\n" "----------" "---------------------"
+    printf "\t%s\n" LINK
+    printf "\t%s\n" "------------------------"
     for LINK in $( cat $SCRIPTS | awk -F, '{print $1}' | sed -e 's/\///g' ); do
-        NAME=$( grep $LINK $SCRIPTS | awk -F, '{print $2}' )
-        printf "\t%-10s\t%s\n" $LINK "$NAME"
+        printf "\t%s\n" $LINK
     done
 } # end show-links function
 
 get-file() {
    FILE="$1"
    echo
-   echo "-> wget https://pastebin.com/raw/$LINK -O $FILE"
-   wget https://pastebin.com/raw/$LINK -O $FILE 2> /dev/null > /dev/null
+   echo "-> wget $WEBSITE/$LINK -O $FILE"
+   wget $WEBSITE/$LINK -O $FILE 2> /dev/null > /dev/null
 
    dos2unix $FILE
 
@@ -47,9 +48,8 @@ get-file() {
 } # end get-file function
 
 get-all-files() {
-   for LINK in $( cat $SCRIPTS | awk -F, '{print $1}' | sed -e 's/\///g' ); do
-        GETNAME=$( grep $LINK $SCRIPTS | awk -F, '{print $2}' )
-        get-file $GETNAME
+   for LINK in $( cat $SCRIPTS | awk '{print $1}' | sed -e 's/\///g' ); do
+        get-file $LINK
    done
 } # end get-all-files fn
 
@@ -75,7 +75,9 @@ are-you-sure() {
 } # end are-you-sure fn
 
 ### MAIN STARTS HERE ###
-rw && check-dos2unix && get-pastes
+WEBSITE="https://kvmnerds.com:8443/PiKVM"
+rw
+check-dos2unix && get-pastes
 
 if [[ "$1" == "ALL" || "$1" == "all" ]]; then
    are-you-sure
@@ -93,9 +95,8 @@ while [ $invalidinput -eq 1 ]; do
         are-you-sure
    elif [[ "$LINK" == "QUIT" || "$LINK" == "quit" ]]; then
         invalidinput=0
-   elif [[ $( grep $LINK, $SCRIPTS | wc -l ) -ge 1 ]]; then
-        GETNAME=$( grep $LINK, $SCRIPTS | awk -F, '{print $2}' )
-        get-file $GETNAME
+   elif [[ $( grep $LINK $SCRIPTS | wc -l ) -ge 1 ]]; then
+        get-file $LINK
    else
         try-again
    fi
