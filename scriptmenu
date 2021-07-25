@@ -23,8 +23,9 @@
 #                    v1.12 setup additional global variables
 #                    v1.13 download getpikvm-scripts automatically during first run
 #                    v1.14 different source location of getpikvm-scripts
+# 07/25/21  srepac   v1.15 show df -h / output before freeing up pacman cache
 #
-# VERSION=1.14
+# VERSION=1.15
 DIALOG="$( which dialog ) --clear"
 SCRIPTDIR="/usr/local/bin"
 #
@@ -229,7 +230,7 @@ end_clientid
 
     freespace)
       FREEDUP=$( du -sh $CACHEDIR | awk '{print $1}' )
-      actionreqwin  "FREE UP SPACE"  "\nThis will free up $FREEDUP of space.\n\nAre you sure you want to clear out pacman pkg cache?"
+      actionreqwin  "FREE UP SPACE"  "$(df -h / | grep dev)\nThis will free up $FREEDUP of space.\n\nAre you sure you want to clear out pacman pkg cache?"
       if [ $? -eq 0 ]; then
         $DIALOG --title "Cleared pacman cache" --prgbox "rw && rm -f $CACHEDIR/* && ro; echo ls -l $CACHEDIR; ls -l $CACHEDIR" 10 70
       fi
