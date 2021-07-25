@@ -232,7 +232,7 @@ end_clientid
       FREEDUP=$( du -sh $CACHEDIR | awk '{print $1}' )
       actionreqwin  "FREE UP SPACE"  "$(df -h / | grep dev)\nThis will free up $FREEDUP of space.\n\nAre you sure you want to clear out pacman pkg cache?"
       if [ $? -eq 0 ]; then
-        $DIALOG --title "Cleared pacman cache" --prgbox "rw && rm -f $CACHEDIR/* && ro; echo ls -l $CACHEDIR; ls -l $CACHEDIR" 10 70
+        $DIALOG --title "Cleared pacman cache" --prgbox "rw && rm -f $CACHEDIR/* && ro; df -h / | grep dev; echo ls -l $CACHEDIR; ls -l $CACHEDIR" 10 70
       fi
       ;;
 
