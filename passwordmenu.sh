@@ -1,5 +1,6 @@
 #!/bin/bash
 DIALOG="$( which dialog ) --clear"
+SCRIPTDIR="/usr/local/bin"
 
 # Check for expect package and expect script to perform htpasswd change
 check-install-expect() {
@@ -8,8 +9,9 @@ check-install-expect() {
   fi
 
   EXPECTFILE="update-htpasswd.exp"
-  if [ ! -e $EXPECTFILE ]; then
-    mesgwin  "File not found."  "\nMissing $EXPECTFILE.  Please contact srepac@kvmnerds.com where to get the file."
+  CMD=$SCRIPTDIR/$EXPECTFILE
+  if [ ! -e $CMD ]; then
+    mesgwin  "File not found."  "\nMissing $CMD.  Please contact srepac@kvmnerds.com where to get the file."
     exit 1
   fi
 } # end check-install-expect
