@@ -27,7 +27,8 @@ passwin() {
   passfile="/tmp/password$$"
   trap "rm -f $passfile" 0 1 2 5 15
 
-  $DIALOG --title "$1" --passwordbox "$2" 10 40 2> $passfile
+  # added --insecure option to show * per character typed
+  $DIALOG --title "$1" --insecure --passwordbox "$2" 10 40 2> $passfile
 } # end passwin
 
 # show a programbox window -- reusable code
@@ -105,7 +106,7 @@ change-webadmin() {
               fi
               progwin  "Webuser ${username} password updated"  "echo Contents of $FILE; cat $FILE"
             else
-              mesgwin  "INFO MESSAGE"  "Passwords entered are not the same.  Password unchanged."
+              mesgwin  "INFO MESSAGE"  "\nPasswords entered are not the same.  Password unchanged."
             fi
           fi
         fi
@@ -140,10 +141,10 @@ change-pass() {
               rw
               echo ${username}:${pass1} > /tmp/pass$$; cat /tmp/pass$$ | chpasswd
               ro
-              mesgwin  "INFO MESSAGE"  "Password successfully changed for [ ${username} ]."
+              mesgwin  "INFO MESSAGE"  "\nPassword successfully changed for [ ${username} ]."
               progwin  "Changed ${username} $FILE entry"  "grep -w $username $FILE"
             else
-              mesgwin  "INFO MESSAGE"  "Passwords entered are not the same.  Password unchanged."
+              mesgwin  "INFO MESSAGE"  "\nPasswords entered are not the same.  Password unchanged."
             fi
           fi
 
@@ -260,5 +261,4 @@ pass-menu() {
 ### MAIN STARTS HERE ###
 check-install-expect
 pass-menu
-
 
