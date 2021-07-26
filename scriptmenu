@@ -21,11 +21,12 @@
 # 07/22/21  srepac   v1.11 removed 'backup' from main menu (left backend code alone)
 #                    ... enable only for NFS users that want image backup
 #                    v1.12 setup additional global variables
-#                    v1.13 download getpikvm-scripts automatically during first run
+# 07/24/21  srepac   v1.13 download getpikvm-scripts automatically during first run
 #                    v1.14 different source location of getpikvm-scripts
-# 07/25/21  srepac   v1.15 show df -h / output before freeing up pacman cache
+# 07/25/21  srepac   v1.15 show df -h / output before and after freeing up pacman cache
+#                    v1.16 added passwords sub-menu to take care of changing passwords
 #
-# VERSION=1.15
+# VERSION=1.16
 DIALOG="$( which dialog ) --clear"
 SCRIPTDIR="/usr/local/bin"
 #
@@ -34,7 +35,6 @@ META="/etc/kvmd/meta.yaml"
 OVERRIDE="/etc/kvmd/override.yaml"
 CACHEDIR="/var/cache/pacman/pkg"
 LOCALTIME="/etc/localtime"
-
 
 dl-getpikvmscripts() {
   SCRIPTNAME=getpikvm-scripts
@@ -270,7 +270,7 @@ end_clientid
         if [ $? -eq 0 ]; then
           # download location for all the downloaded scripts
           cd $SCRIPTDIR
-          $DIALOG --title "$TITLE" --prgbox "yes | $CMD all && ls -l $SCRIPTDIR" 40 100
+          $DIALOG --title "$TITLE" --prgbox "yes | $CMD all && echo ls -l $SCRIPTDIR; ls -l $SCRIPTDIR" 40 100
           cd -
         fi
       else
@@ -281,6 +281,17 @@ end_clientid
           clear; printf "\nPlease copy the URL below into your web browser so you can download the $SCRIPTNAME\n\n$link\n\n"
           read -p "Press ENTER when done. " enter
         fi
+      fi
+      ;;
+
+    passwords)
+      SCRIPTNAME=passwordmenu.sh
+      CMD="$SCRIPTDIR/$SCRIPTNAME"
+      if [ -e $CMD ]; then
+        $CMD
+      else
+        link="$WEBSITE/$SCRIPTNAME"
+        filenotfound $link
       fi
       ;;
 
@@ -319,7 +330,7 @@ main() {
   localtime=$( ls -l /etc/localtime | awk -F\/ '{print $NF}' )
 
   $DIALOG --title "Pi-KVM SCRIPT MENU" \
-        --menu "Custom Configuration/Scripts menu - Hostname:  $(hostname)\nItems with * require reboot to take effect" 22 70 4 \
+        --menu "Custom Configuration/Scripts menu - Hostname:  $(hostname)\nItems with * require reboot to take effect" 25 70 4 \
         "about"       "About this program" \
         "getall"      "Get srepac public pastebins into $SCRIPTDIR" \
         "info"        "Show PiKVM information" \
@@ -328,13 +339,14 @@ main() {
         "newhostname" "* Change $HOSTFILE and $META" \
         "dhcpfix"     "* Fix Different eth0 DHCP IP at boot" \
         "timezone"    "Change $LOCALTIME - $localtime" \
+        "passwords"   "PASSWORDS SUB-MENU" \
         "freespace"   "Free up space from $CACHEDIR" \
         "yamlcheck"   "Check YAML syntax of $OVERRIDE" \
         "update"      "* Update PiKVM OS/packages - $updatemesg" \
         "reboot"      "Reboot PiKVM $rebootmsg" \
         "quit"        "Quit program" 2> $tempfile
 
-        ### uncomment and move the following in between getall and update above if NFS user
+        ### uncomment and move the following in between yamlcheck and update above if NFS user
         #"backup"      "Backup Full SD Card Image to NFS" \
 
   retval=$?
