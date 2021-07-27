@@ -26,11 +26,13 @@
 # 07/25/21  srepac   v1.15 show df -h / output before and after freeing up pacman cache
 #                    v1.16 added passwords sub-menu to take care of changing passwords
 # 07/27/21  srepac   v1.17 added enablesudo entry to give kvmd-webterm user sudo access
+#                    v1.18 code cleanup - use function for dialog --prgbox
+#                    v1.19 added edidmenu to pick different EDID files to solve an issue
 #
-# VERSION=1.17
+# VERSION=1.19
 DIALOG="$( which dialog ) --clear"
 SCRIPTDIR="/usr/local/bin"
-#
+
 HOSTFILE="/etc/hostname"
 META="/etc/kvmd/meta.yaml"
 OVERRIDE="/etc/kvmd/override.yaml"
@@ -77,6 +79,16 @@ textwin() {       # default: 10 lines high and 70 chars wide
   if [[ "$4" != "" ]]; then WIDTH=$4; fi
   $DIALOG --title "$1" --textbox "$2" $HT $WIDTH
 } # end textwin
+
+
+# show a prgbox window -- reusable code
+progwin() {       # default: 40 lines high and 100 chars wide
+  HT=40
+  WIDTH=100
+  if [[ "$3" != "" ]]; then HT=$3; fi
+  if [[ "$4" != "" ]]; then WIDTH=$4; fi
+  $DIALOG --title "$1" --prgbox "$2" $HT $WIDTH
+} # end progwin
 
 
 check-run-script() {
@@ -174,7 +186,7 @@ do-something() {
           if [ $? -eq 0 ]; then
             BACKUPDIR=$( grep ^BACKUPDIR= $CMD | cut -d'"' -f2 )
             if [ $(mount | grep $BACKUPDIR | grep nfs | wc -l) -eq 1 ]; then
-              $DIALOG --title "Running SD Card Image Backup - $IMGFILE" --prgbox "yes | $SCRIPTNAME" 40 70
+              progwin  "Running SD Card Image Backup - $IMGFILE"  "yes | $SCRIPTNAME" 40 70
             else
               mesgwin  "ACTION REQUIRED"  "\nMount point $BACKUPDIR is not an NFS mount.  Please add the relevant entry in /etc/fstab for the nfs mount and then run\n\n  mount $BACKUPDIR\n\nRetry again after NFS export is mounted on Pi.\n\nRecommend you run the script manually then try again.\n\n  $CMD" 20
             fi
@@ -233,7 +245,7 @@ end_clientid
       FREEDUP=$( du -sh $CACHEDIR | awk '{print $1}' )
       actionreqwin  "FREE UP SPACE"  "$(df -h / | grep dev)\nThis will free up $FREEDUP of space.\n\nAre you sure you want to clear out pacman pkg cache?"
       if [ $? -eq 0 ]; then
-        $DIALOG --title "Cleared pacman cache" --prgbox "rw && rm -f $CACHEDIR/* && ro; df -h / | grep dev; echo ls -l $CACHEDIR; ls -l $CACHEDIR" 10 70
+        progwin  "Cleared pacman cache"  "rw && rm -f $CACHEDIR/* && ro; df -h / | grep dev; echo ls -l $CACHEDIR; ls -l $CACHEDIR" 10 70
       fi
       ;;
 
@@ -244,7 +256,7 @@ end_clientid
       if [ -e $CMD ]; then
         actionreqwin  "$TITLE"  "\nAre you sure you want to run the following?\n\n$CMD $OVERRIDE"
         if [ $? -eq 0 ]; then
-          $DIALOG --title "Checking YAML syntax of $OVERRIDE" --prgbox "$CMD $OVERRIDE" 40 100
+          progwin  "Checking YAML syntax of $OVERRIDE"  "$CMD $OVERRIDE"
         fi
       else
         filenotfound $link
@@ -267,7 +279,7 @@ end_clientid
       ACTION="UPDATE"
       actionreqwin  "$ACTION PI-KVM"  "\nYou are currently running v${kvmdver}\n\nAre you sure you want to $ACTION Pi-KVM OS/packages to v${KVMDNEW}?"
       if [ $? -eq 0 ]; then
-        $DIALOG --title "$ACTION Pi-KVM OS" --prgbox "rw && pacman -Syy && pacman --noconfirm --ask=4 -Su" 40 100
+        progwin "$ACTION Pi-KVM OS"  "rw && pacman -Syy && pacman --noconfirm --ask=4 -Su"
         rebootreqd=1
       else
         rebootreqd=0
@@ -283,7 +295,7 @@ end_clientid
         if [ $? -eq 0 ]; then
           # download location for all the downloaded scripts
           cd $SCRIPTDIR
-          $DIALOG --title "$TITLE" --prgbox "yes | $CMD all && echo ls -l $SCRIPTDIR; ls -l $SCRIPTDIR" 40 100
+          progwin  "$TITLE"  "yes | $CMD all && echo ls -l $SCRIPTDIR; ls -l $SCRIPTDIR"
           cd -
         fi
       else
@@ -294,6 +306,17 @@ end_clientid
           clear; printf "\nPlease copy the URL below into your web browser so you can download the $SCRIPTNAME\n\n$link\n\n"
           read -p "Press ENTER when done. " enter
         fi
+      fi
+      ;;
+
+    edidselect)
+      SCRIPTNAME=edidmenu.sh
+      CMD="$SCRIPTDIR/$SCRIPTNAME"
+      if [ -e $CMD ]; then
+        $CMD
+      else
+        link="$WEBSITE/$SCRIPTNAME"
+        filenotfound $link
       fi
       ;;
 
@@ -354,6 +377,7 @@ main() {
         "dhcpfix"     "* Fix Different eth0 DHCP IP at boot" \
         "timezone"    "Change $LOCALTIME - $localtime" \
         "passwords"   "PASSWORDS SUB-MENU" \
+        "edidselect"  "EDID SUB-MENU" \
         "freespace"   "Free up space from $CACHEDIR" \
         "yamlcheck"   "Check YAML syntax of $OVERRIDE" \
         "update"      "* Update PiKVM OS/packages - $updatemesg" \
