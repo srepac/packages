@@ -25,8 +25,9 @@
 #                    v1.14 different source location of getpikvm-scripts
 # 07/25/21  srepac   v1.15 show df -h / output before and after freeing up pacman cache
 #                    v1.16 added passwords sub-menu to take care of changing passwords
+# 07/27/21  srepac   v1.17 added enablesudo entry to give kvmd-webterm user sudo access
 #
-# VERSION=1.16
+# VERSION=1.17
 DIALOG="$( which dialog ) --clear"
 SCRIPTDIR="/usr/local/bin"
 #
@@ -250,6 +251,18 @@ end_clientid
       fi
       ;;
 
+    enablesudo)
+      webtermuser="kvmd-webterm"
+      sudoersfile="/etc/sudoers.d/99_kvmd"
+      ENTRY="kvmd-webterm ALL=(ALL) NOPASSWD: ALL"
+      if [ $( grep -w $webtermuser $sudoersfile | wc -l ) -gt 0 ]; then
+        textwin "$webtermuser already in ${sudoersfile}" "${sudoersfile}"
+      else
+        rw; echo ${ENTRY} >> ${sudoersfile}; ro
+        textwin "Added $webtermuser into ${sudoersfile}" "${sudoersfile}"
+      fi
+      ;;
+
     update)
       ACTION="UPDATE"
       actionreqwin  "$ACTION PI-KVM"  "\nYou are currently running v${kvmdver}\n\nAre you sure you want to $ACTION Pi-KVM OS/packages to v${KVMDNEW}?"
@@ -335,6 +348,7 @@ main() {
         "getall"      "Get srepac public pastebins into $SCRIPTDIR" \
         "info"        "Show PiKVM information" \
         "capture"     "Check capture card connection" \
+        "enablesudo"  "Enable sudo access for kvmd-webterm user" \
         "showhost"    "Show $HOSTFILE and $META" \
         "newhostname" "* Change $HOSTFILE and $META" \
         "dhcpfix"     "* Fix Different eth0 DHCP IP at boot" \
