@@ -172,7 +172,6 @@ create-list() {     # generate list of webusers with dialog command
 
   GETUSER="/tmp/adminusers.cmd"; rm -f $GETUSER
   printf "$DIALOG --title \"WEB ADMIN USERS\" --menu \"Please pick which user to $ACTION:\\\\n\" 15 40 4 $(cat $LIST)" > $GETUSER
-
   chmod +x ${GETUSER}
 } # end create-list
 
@@ -196,6 +195,8 @@ change-something() {
           change-webadmin ${username} new
         fi
       fi
+      # clean up temp password file
+      rm -f /tmp/pass*
       ;;
 
     deluser)
@@ -218,9 +219,13 @@ change-something() {
 
     rootpass)
       change-pass root
+      # clean up temp password file
+      rm -f /tmp/pass*
       ;;
 
     quit)
+      # Cleanup /tmp/pass* files used by script
+      rm -f /tmp/pass*
       exit 0
       ;;
 
@@ -263,4 +268,3 @@ pass-menu() {
 ### MAIN STARTS HERE ###
 check-install-expect
 pass-menu
-
