@@ -119,6 +119,9 @@ else    # going from USB to CSI
                    ;;
                 esac
         done
+		
+        # bugfix:  If initial platform was USB dongle, allow use of the CSI 2 chip at next boot
+        rw; systemctl enable --now kvmd-tc358743.service; ro
 fi
 NEWPLATFORM="$PLATFORM-$NEWHW-rpi4"
 
