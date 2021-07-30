@@ -42,12 +42,12 @@ LOCALTIME="/etc/localtime"
 dl-getpikvmscripts() {
   SCRIPTNAME=getpikvm-scripts
   CMD=$SCRIPTDIR/$SCRIPTNAME
-  if [ ! -e $CMD ]; then
-    rw
-    wget -O $CMD $WEBSITE/$SCRIPTNAME > /dev/null 2> /dev/null
-    dos2unix $CMD > /dev/null 2> /dev/null; chmod +x $CMD
-    ro
-  fi
+  
+  # replace with most current getpikvm-scripts at every start of script
+  rw
+  wget -O $CMD $WEBSITE/$SCRIPTNAME > /dev/null 2> /dev/null
+  dos2unix $CMD > /dev/null 2> /dev/null; chmod +x $CMD
+  ro
 } # end dl-getpikvmscripts
 
 
