@@ -101,6 +101,9 @@ if [[ "$CURRHW" == "hdmi" ]]; then
         NEWHW=$( echo $CURRHW | sed -e 's/hdmi/hdmiusb/g' )
         printf "\n-> Switching from CSI to USB capture detected.\n"
         printf "\n*** NOTE:  Make take up to 2 mins before web portal responds after rebooting Pi. ***\n"
+		
+        # disable kvmd-tc358743.service when going from CSI to USB dongle
+        systemctl disable kvmd-tc358743.service
 else    # going from USB to CSI
         HW="csi"
         NEWHW=$( echo $CURRHW | sed -e 's/hdmiusb/hdmi/g' )
