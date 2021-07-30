@@ -36,8 +36,10 @@ BOOTCONFIG="/boot/config.txt"
 #  07/09/21  srepac     added ability to change from USB to CSI V2 or V3 HAT, and make sure script only works on Pi4
 #  07/10/21  srepac     Due to kvmd services, web portal make take up to 2 mins before it responds after pi reboots
 #                       ... this is especially true if switching from CSI to USB
+#  07/28/21  srepac     v1.1 buxfix: enable tc358743.service when switching from USB to CSI
+#  07/30/21  srepac     v1.2 slight edit of bugfix above after testing going from USB -> CSI platform
 #
-VER="1.0"
+VER="1.2"
 printf "KVMD-PLATFORM SWITCHER v$VER by srepac\n\n"
 
 # Script only works on Pi 4
@@ -119,9 +121,9 @@ else    # going from USB to CSI
                    ;;
                 esac
         done
-		
+
         # bugfix:  If initial platform was USB dongle, allow use of the CSI 2 chip at next boot
-        rw; systemctl enable --now kvmd-tc358743.service; ro
+        systemctl enable kvmd-tc358743.service
 fi
 NEWPLATFORM="$PLATFORM-$NEWHW-rpi4"
 
