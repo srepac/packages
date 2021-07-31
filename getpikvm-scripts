@@ -33,8 +33,8 @@ show-links() {
 
 get-file() {
    FILE="$1"
-   echo
-   echo "-> wget $WEBSITE/$LINK -O $FILE"
+   #echo
+   #echo "-> wget $WEBSITE/$LINK -O $FILE"
    wget $WEBSITE/$LINK -O $FILE 2> /dev/null > /dev/null
 
    dos2unix $FILE
