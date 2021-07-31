@@ -12,7 +12,6 @@
 kvmd:
     streamer:
         forever: true
-        cmd_append: [--slowdown]                    # for usb-hdmi only so that target PC display works w/o rebooting
         h264_bitrate:
             default: 5000
         cmd_append:
@@ -20,6 +19,7 @@ kvmd:
             - "--h264-sink-mode=0660"
             - "--h264-bitrate={h264_bitrate}"
             - "--h264-gop={h264_gop}"
+			- "--slowdown"                          # for usb-hdmi only so that target PC display works w/o rebooting
 '
 ###
 # Overview steps the script performs
