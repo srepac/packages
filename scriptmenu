@@ -28,7 +28,7 @@
 # 07/27/21  srepac   v1.17 added enablesudo entry to give kvmd-webterm user sudo access
 #                    v1.18 code cleanup - use function for dialog --prgbox
 #                    v1.19 added edidmenu to pick different EDID files to solve an issue
-#                    v1.20 added netconfig to menu
+# 07/30/21  srepac   v1.20 added netconfig to menu
 #
 # VERSION=1.20
 DIALOG="$( which dialog ) --clear"
