@@ -2,12 +2,13 @@
 # This script performs network configuration for PiKVM
 #
 # HISTORY:
-#   07/29/2021  srepac	v1.0 wrote initial script
-#   07/30/2021	srepac	@invadermonks tested script (stdout grep errors found but did not affect
+#   07/29/2021  srepac  v1.0 wrote initial script
+#   07/30/2021  srepac  @invadermonks tested script (stdout grep errors found but did not affect
 #                       ... expected behavior to change from DHCP to STATIC and vice versa
 #                       v1.1 fixed bug as per above
 #                       @Arch1mede tested bug fixes and confirmed ready for public use
-# VER=1.1
+#                       v1.2 show IP calculation in show addresses as per @invadermonks
+# VER=1.2
 #
 ETH0="/etc/systemd/network/eth0.network"
 # Find out which SSID file is in use for wlan0
@@ -77,16 +78,16 @@ chk-ip-inuse() {  # check to make sure that static IP user typed in is not curre
   if [ `cat $PINGOUT | grep '100% packet loss' | wc -l` -eq 1 ]; then    # IP is available
 
     # if no SSID, then don't check WIFI, else check both (added after @invadermonks tested script)
-    # ... he did not have wifi connected to SSID so he was getting grep errors in stdout 
+    # ... he did not have wifi connected to SSID so he was getting grep errors in stdout
     if [[ "$SSID" == "" ]]; then
-      ADAPTERS="$ETH0" 
+      ADAPTERS="$ETH0"
     else
-      ADAPTERS="$ETH0 $WIFI" 
+      ADAPTERS="$ETH0 $WIFI"
     fi
 
-    if [ `grep $CHKIP $ADAPTERS| wc -l` -eq 0 ]; then   # check IP entered is not in wlan0 and eth0 config 
+    if [ `grep $CHKIP $ADAPTERS| wc -l` -eq 0 ]; then   # check IP entered is not in wlan0 and eth0 config
       if [ `host $CHKIP | awk '{print $NF}' | grep NXDOMAIN | wc -l` -gt 0 ]; then  # IP has no reverse DNS entry
-        MESSAGE="\n$CHKIP is AVAILABLE.\n\n - no reverse DNS entry found.\n - IP is not in use by other interfaces on this PiKVM.\n\nProceeding with $INTERFACE static configuration." 
+        MESSAGE="\n$CHKIP is AVAILABLE.\n\n - no reverse DNS entry found.\n - IP is not in use by other interfaces on this PiKVM.\n\nProceeding with $INTERFACE static configuration."
         mesgwin "INFO MESSAGE" "$MESSAGE" 12
         invalid=0
       else
@@ -103,15 +104,13 @@ chk-ip-inuse() {  # check to make sure that static IP user typed in is not curre
     mesgwin "INFO MESSAGE" "\n$CHKIP is IN USE by another device.\nPlease try another IP."
     invalid=1
   fi
-} # end chk-ip-inuse function 
+} # end chk-ip-inuse function
 
 
-change-ip() {
-  # take in IP.ad.dr.ess/CIDR notation and ask user to allocate what IP to use
-  INTERFACE="$2"
+ip-calculation() {
   IPCIDR="$1"
   CIDR=$( echo $IPCIDR | cut -d'/' -f2 )
-   
+
   OCTET1=$( echo $IPCIDR | cut -d'.' -f1 )
   OCTET2=$( echo $IPCIDR | cut -d'.' -f2 )
   OCTET3=$( echo $IPCIDR | cut -d'.' -f3 )
@@ -120,27 +119,27 @@ change-ip() {
   NUMFULLCIDR=$( echo $CIDR / 8 | bc )
   LEFTOVER=$( echo $CIDR % 8 | bc )
 
-  increment=$( echo "2^(8-$LEFTOVER)" | bc )  
-  netbits=$( echo "256 - $increment" | bc )  
+  increment=$( echo "2^(8-$LEFTOVER)" | bc )
+  netbits=$( echo "256 - $increment" | bc )
   let "startip=$NETID + 1"
 
-  case $NUMFULLCIDR in 
+  case $NUMFULLCIDR in
     1) NETID=$( echo "( $OCTET2 / $increment ) * $increment" | bc )
-       SUBNET="$OCTET1" 
-       NETWORK="$SUBNET.$NETID" 
+       SUBNET="$OCTET1"
+       NETWORK="$SUBNET.$NETID"
        MASK="255.$netbits.0.0"
        OCTET=2
        ;;
     2) NETID=$( echo "( $OCTET3 / $increment ) * $increment" | bc )
-       SUBNET="$OCTET1.$OCTET2" 
-       MASK="255.255.$netbits.0" 
-       NETWORK="$SUBNET.$NETID" 
+       SUBNET="$OCTET1.$OCTET2"
+       MASK="255.255.$netbits.0"
+       NETWORK="$SUBNET.$NETID"
        OCTET=3
        ;;
     3) NETID=$( echo "( $OCTET4 / $increment ) * $increment" | bc )
        SUBNET="$OCTET1.$OCTET2.$OCTET3"
-       MASK="255.255.255.$netbits" 
-       NETWORK="$SUBNET.$NETID" 
+       MASK="255.255.255.$netbits"
+       NETWORK="$SUBNET.$NETID"
        OCTET=4
        ;;
     *)
@@ -150,10 +149,19 @@ change-ip() {
 
   HOSTS=$( echo "2^(32-$CIDR) - 2" | bc )
   MAXIP=$( echo "$HOSTS + $NETID" | bc )
+} # end ip-calculation
+
+
+change-ip() {
+  # take in IP.ad.dr.ess/CIDR notation and ask user to allocate what IP to use
+  INTERFACE="$2"
+  IPCIDR="$1"
+
+  ip-calculation $IPCIDR
+
+  MESSAGE="\nDHCP IP:    $IPCIDR\nNETMASK:    $MASK\nNETWORK:    $NETWORK\nIncrement:  $increment\n# host IPs: $HOSTS\n\nPlease enter complete static IP address below:\n(hint: change octet $OCTET)"
 
   tmpipfile="/tmp/setup-$INTERFACE.out"; /bin/rm -f $tmpipfile
-  MESSAGE="\nDHCP IP:    $IPCIDR\nNETMASK:    $MASK\nNETWORK:    $NETWORK\nIncrement:  $increment\n# host IPs: $HOSTS\n\nPlease enter complete static IP address below:\n(hint: change octet $OCTET)"
- 
   $DIALOG --backtitle "Network Interface Setup" \
        --title "Network Configuration - $INTERFACE" \
        --form "$MESSAGE" 18 60 2 \
@@ -194,23 +202,23 @@ ClientIdentifier=mac\n" >> $TMPETH0
 
 eth-dhcp2static() {
   ETHSTATIC="/tmp/eth0.static"; /bin/rm -f $ETHSTATIC
-  CURRIP=$( ip -br a | egrep eth0 | awk '{print $3}' ) 
+  CURRIP=$( ip -br a | egrep eth0 | awk '{print $3}' )
   # TESTING ONLY
   #CURRIP="172.16.0.88/26"
- 
+
   printf "[Match]\nName=eth0\n\n[Network]\n" >> $ETHSTATIC
 
   invalid=1
-  while [ $invalid -eq 1 ]; do 
+  while [ $invalid -eq 1 ]; do
     change-ip $CURRIP eth0
   done
   echo "Address=${IPADDR}/$CIDR" >> $ETHSTATIC
 
-  GW=$( netstat -nr | grep ^0.0.0.0 | awk '{print $2}' | uniq ) 
+  GW=$( netstat -nr | grep ^0.0.0.0 | awk '{print $2}' | uniq )
   echo "Gateway=$GW" >> $ETHSTATIC
 
   for i in `cat /etc/resolv.conf | grep nameserver | awk '{print $2}'`; do echo "DNS=$i"; done >> $ETHSTATIC
-  
+
   textwin "$ETHSTATIC" $ETHSTATIC 20
   actionreqwin "Change to eth0 STATIC config" "\nAre you sure you want to change eth0 to STATIC?"
   if [ $? -eq 0 ]; then
@@ -224,25 +232,25 @@ eth-dhcp2static() {
 
 wlan-dhcp2static() {
   WLANSTATIC="/tmp/wlan0.static"; /bin/rm -f $WLANSTATIC
-  CURRIP=$( ip -br a | egrep wlan0 | awk '{print $3}' ) 
+  CURRIP=$( ip -br a | egrep wlan0 | awk '{print $3}' )
 
-  sed '/^IP=dhcp/d' $WIFI >> $WLANSTATIC	# remove IP=dhcp line
-  printf "\nIP=static\n" >> $WLANSTATIC		# create new IP=static line 
+  sed '/^IP=dhcp/d' $WIFI >> $WLANSTATIC        # remove IP=dhcp line
+  printf "\nIP=static\n" >> $WLANSTATIC         # create new IP=static line
 
   invalid=1
-  while [ $invalid -eq 1 ]; do 
+  while [ $invalid -eq 1 ]; do
     change-ip $CURRIP wlan0
   done
   echo "Address=('"${IPADDR}"/$CIDR')" >> $WLANSTATIC
 
-  GW=$( netstat -nr | grep ^0.0.0.0 | awk '{print $2}' | uniq ) 
+  GW=$( netstat -nr | grep ^0.0.0.0 | awk '{print $2}' | uniq )
   echo "Gateway=('$GW')" >> $WLANSTATIC
 
   echo -n "DNS=(\"" >> $WLANSTATIC
-  for i in `cat /etc/resolv.conf | grep nameserver | awk '{print $2}' | grep -v ':'`; do 
+  for i in `cat /etc/resolv.conf | grep nameserver | awk '{print $2}' | grep -v ':'`; do
     echo -n "$i "
   done | sed 's/ $//g' >> $WLANSTATIC
-  echo "\")" >> $WLANSTATIC 
+  echo "\")" >> $WLANSTATIC
 
   textwin "$WLANSTATIC" $WLANSTATIC 30 80
   actionreqwin "Change to wlan0 STATIC config" "\nAre you sure you want to change wlan0 to STATIC?"
@@ -256,9 +264,9 @@ wlan-dhcp2static() {
 
 
 wlan-static2dhcp() {
-  CURRIP=$( ip -br a | egrep wlan0 | awk '{print $3}' ) 
+  CURRIP=$( ip -br a | egrep wlan0 | awk '{print $3}' )
   TMPFILE="/tmp/wifi.dhcp"
-  cat $WIFI | egrep -v 'Address|Gateway|DNS' | sed 's/^IP=[a-z]*/IP=dhcp/g' > $TMPFILE 
+  cat $WIFI | egrep -v 'Address|Gateway|DNS' | sed 's/^IP=[a-z]*/IP=dhcp/g' > $TMPFILE
 
   textwin "$TMPFILE" $TMPFILE
   actionreqwin "Change to wlan0 DHCP config" "\nAre you sure you want to change wlan0 to DHCP?"
@@ -272,9 +280,19 @@ wlan-static2dhcp() {
 
 
 show-ip() {
-  CMD="ip -br a | egrep 'eth0|wlan0' | awk '{print \$1, \$3}'"
-  progwin "IP Addresses - $(hostname)" "$CMD" 10 40
-} 
+  IPADDRFILE="/tmp/ipaddresses"; /bin/rm -f $IPADDRFILE
+  printf "%8s  %s\n" $( ip -br a | egrep 'eth0|wlan0' | awk '{print $1, $3}' ) > ${IPADDRFILE}
+
+  IPMSG="/tmp/ip.message"; /bin/rm -f $IPMSG; cat ${IPADDRFILE} > $IPMSG
+
+  for IPCIDR in `cat ${IPADDRFILE} | awk '{print $2}'`; do
+    ip-calculation $IPCIDR
+
+    printf "\nIP ADDR:  $IPCIDR\nNETMASK:  $MASK\nNETWORK:  $NETWORK\n"
+  done >> $IPMSG
+
+  textwin "IP Addresses - $(hostname)" "$IPMSG" 15 40
+}
 
 
 ip-pi4() {
@@ -285,7 +303,7 @@ ip-pi4() {
       ;;
 
     currentwlan)
-      chk-no-wifi 
+      chk-no-wifi
       textwin "Current $WIFI config" "$WIFI"
       ;;
 
@@ -309,8 +327,8 @@ ip-pi4() {
       fi
       ;;
 
-    staticwlan) 
-      chk-no-wifi 
+    staticwlan)
+      chk-no-wifi
       if [ $( grep ^IP=static $WIFI | wc -l ) -gt 0 ]; then
         textwin "wlan0 already set to STATIC" "$WIFI"
       else
@@ -318,8 +336,8 @@ ip-pi4() {
       fi
       ;;
 
-    wlandhcp) 
-      chk-no-wifi 
+    wlandhcp)
+      chk-no-wifi
       if [ $( grep ^IP=dhcp $WIFI | wc -l ) -gt 0 ]; then
         textwin "wlan0 already set to DHCP" "$WIFI"
       else
@@ -328,7 +346,7 @@ ip-pi4() {
       ;;
 
     reboot)
-      reboot && exit && exit 
+      reboot && exit && exit
       ;;
 
     quit)
@@ -351,12 +369,12 @@ ip-zero() {
       ;;
 
     currentwlan)
-      chk-no-wifi 
+      chk-no-wifi
       textwin "Current $WIFI config" "$WIFI"
       ;;
 
-    staticwlan) 
-      chk-no-wifi 
+    staticwlan)
+      chk-no-wifi
       if [ $( grep ^IP=static $WIFI | wc -l ) -gt 0 ]; then
         textwin "wlan0 already set to STATIC" "$WIFI"
       else
@@ -364,8 +382,8 @@ ip-zero() {
       fi
       ;;
 
-    dhcpwlan) 
-      chk-no-wifi 
+    dhcpwlan)
+      chk-no-wifi
       if [ $( grep ^IP=dhcp $WIFI | wc -l ) -gt 0 ]; then
         textwin "wlan0 already set to DHCP" "$WIFI"
       else
@@ -374,7 +392,7 @@ ip-zero() {
       ;;
 
     reboot)
-      reboot && exit && exit 
+      reboot && exit && exit
       ;;
 
     quit)
@@ -385,16 +403,16 @@ ip-zero() {
       mesgwin  "INFO MESSAGE"  "\nYour selection [ $selection ] is not yet implemented."
       ;;
   esac
-  main-menu 
+  main-menu
 } # end ip-zero function
-     
 
-chk-no-wifi() {   # if not connected to SSID, tell user to connect first and then show main-menu 
+
+chk-no-wifi() {   # if not connected to SSID, tell user to connect first and then show main-menu
   if [[ "$SSID" == "" ]]; then
     mesgwin "INFO MESSAGE"  "\nYou need to connect wifi to an SSID first, then try again\n"
-    main-menu  
+    main-menu
   fi
-} # 
+} #
 
 
 pi4-menu() {
@@ -403,14 +421,14 @@ pi4-menu() {
 
   $DIALOG --title "PiKVM IP CONFIG MENU" \
         --menu "Change IP configuration for Hostname: $(hostname)\n\n*** Changes will not take effect until you reboot. ***\n" 18 70 4 \
-	"ipaddress"	"Show IP address(es)" \
+        "ipaddress"     "Show IP address(es)" \
         "currenteth"    "Current eth0 config - $ETHCONF" \
         "currentwlan"   "Current wlan0 config - $WLANCONF" \
         "ethdhcp"       "Set eth0 to use DHCP" \
         "wlandhcp"      "Set wlan0 to use DHCP" \
         "staticeth"     "Set eth0 to use STATIC" \
         "staticwlan"    "Set wlan0 to use STATIC" \
-	"reboot"	"Reboot PiKVM" \
+        "reboot"        "Reboot PiKVM" \
         "quit"          "Quit program" 2> $tempfile
 
   retval=$?
@@ -418,7 +436,7 @@ pi4-menu() {
 
   case $retval in
     0)
-      ip-pi4 
+      ip-pi4
       ;;
     1)  # Cancel pressed.
       exit 0
@@ -427,7 +445,7 @@ pi4-menu() {
       exit 0
       ;;
   esac
-} # end pi4-menu 
+} # end pi4-menu
 
 
 zero-menu() {
@@ -435,20 +453,20 @@ zero-menu() {
   trap "rm -f $tempfile" 0 1 2 5 15
 
   $DIALOG --title "Pi Zero IP CONFIG MENU" \
-	--menu "Change IP configuration for Hostname: $(hostname)\n\n*** Changes will not take effect until reboot. ***\n" 18 70 4 \
-	"ipaddress"	"Show IP address(es)" \
-	"currentwlan"	"Current wlan0 DHCP config - $WLANCONF" \
-	"dhcpwlan"	"Set wlan0 to use DHCP" \
-	"staticwlan"	"Set wlan0 to use STATIC" \
-	"reboot"	"Reboot PiKVM" \
-	"quit"		"Quit program" 2> $tempfile
+        --menu "Change IP configuration for Hostname: $(hostname)\n\n*** Changes will not take effect until reboot. ***\n" 18 70 4 \
+        "ipaddress"     "Show IP address(es)" \
+        "currentwlan"   "Current wlan0 DHCP config - $WLANCONF" \
+        "dhcpwlan"      "Set wlan0 to use DHCP" \
+        "staticwlan"    "Set wlan0 to use STATIC" \
+        "reboot"        "Reboot PiKVM" \
+        "quit"          "Quit program" 2> $tempfile
 
   retval=$?
   selection=`cat $tempfile`
 
   case $retval in
     0)
-      ip-zero 
+      ip-zero
       ;;
     1)  # Cancel pressed.
       exit 0
@@ -457,7 +475,7 @@ zero-menu() {
       exit 0
       ;;
   esac
-} # end zero-menu 
+} # end zero-menu
 
 
 chk-current-configs() {
@@ -475,16 +493,16 @@ chk-current-configs() {
     ETHCONF="DHCP"
   else
     ETHCONF="STATIC"
-  fi  
+  fi
 }
 
 
-main-menu() { 
+main-menu() {
   chk-current-configs
 
   case $PIMODEL in
   Zero)
-    zero-menu 
+    zero-menu
     ;;
   2|3|4)
     pi4-menu
