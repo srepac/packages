@@ -29,8 +29,9 @@
 #                    v1.18 code cleanup - use function for dialog --prgbox
 #                    v1.19 added edidmenu to pick different EDID files to solve an issue
 # 07/30/21  srepac   v1.20 added netconfig to menu
+# 07/31/21  srepac   v1.21 edited menu entries so no duplicate starting letters
 #
-# VERSION=1.20
+# VERSION=1.21
 DIALOG="$( which dialog ) --clear"
 SCRIPTDIR="/usr/local/bin"
 #
@@ -123,8 +124,7 @@ check-run-script() {
 
 
 filenotfound() {
-    mesgwin "File not found" "\n$CMD does not exist.\n\nPlease download it from $1\n\nIf you like this program, please paypal
- me @ $EMAIL\nDonations are welcome, but not required." 20
+    mesgwin "File not found" "\n$CMD does not exist.\n\nPlease download it from $1\n\nIf you like this program, please paypal me @ $EMAIL\nDonations are welcome, but not required." 20
 } # end filenotfound
 
 
@@ -141,7 +141,7 @@ do-something() {
       mesgwin  "About this program"  "Written by GitHub user @srepac as requested by @mdevaev\n\nProgram was created to address solutions to many PiKVM users' feature requests. If you'd like to request a feature, please paypal me at $EMAIL so that I can continue to make this feature complete.\n\nPlease send all feature requests to the same email address.\n\nOf course, donations are welcome, but not required.\n\n$link" 20 80
       ;;
 
-    newhostname)
+    hostedit)
       tempfile="/tmp/hostname"
       $DIALOG --title "Custom Hostname" --inputbox "\nType hostname you would like to change to:" 10 51 2>$tempfile
       choice=$?
@@ -311,7 +311,7 @@ end_clientid
       fi
       ;;
 
-    edidselect)
+    videoedid)
       SCRIPTNAME=edidmenu.sh
       CMD="$SCRIPTDIR/$SCRIPTNAME"
       if [ -e $CMD ]; then
@@ -379,20 +379,19 @@ main() {
   localtime=$( ls -l /etc/localtime | awk -F\/ '{print $NF}' )
 
   $DIALOG --title "Pi-KVM SCRIPT MENU" \
-        --menu "Custom Configuration/Scripts menu - Hostname:  $(hostname)\nItems with * require reboot to take effect" 25 70
- 4 \
+        --menu "Custom Configuration/Scripts menu - Hostname:  $(hostname)\nItems with * require reboot to take effect" 25 70 4 \
         "about"       "About this program" \
         "getall"      "Get srepac public pastebins into $SCRIPTDIR" \
         "info"        "Show PiKVM information" \
         "capture"     "Check capture card connection" \
         "enablesudo"  "Enable sudo access for kvmd-webterm user" \
         "showhost"    "Show $HOSTFILE and $META" \
-        "newhostname" "* Change $HOSTFILE and $META" \
+        "hostedit"    "* Change $HOSTFILE and $META" \
         "dhcpfix"     "* Fix Different eth0 DHCP IP at boot" \
         "timezone"    "Change $LOCALTIME - $localtime" \
         "passwords"   "PASSWORDS SUB-MENU" \
         "netconfig"   "NETWORK CONFIG SUB-MENU" \
-        "edidselect"  "EDID SUB-MENU" \
+        "videoedid"   "VIDEO EDID SUB-MENU" \
         "freespace"   "Free up space from $CACHEDIR" \
         "yamlcheck"   "Check YAML syntax of $OVERRIDE" \
         "update"      "* Update PiKVM OS/packages - $updatemesg" \
