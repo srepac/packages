@@ -138,10 +138,7 @@ do-something() {
   case $selection in
 
     about)
-      mesgwin  "About this program"  "Written by GitHub user @srepac as requested by @mdevaev\n\nProgram was created to addre
-ss solutions to many PiKVM users' feature requests. If you'd like to request a feature, please paypal me at $EMAIL so that I
-can continue to make this feature complete.\n\nPlease send all feature requests to the same email address.\n\nOf course, dona
-tions are welcome, but not required.\n\n$link" 20 80
+      mesgwin  "About this program"  "Written by GitHub user @srepac as requested by @mdevaev\n\nProgram was created to address solutions to many PiKVM users' feature requests. If you'd like to request a feature, please paypal me at $EMAIL so that I can continue to make this feature complete.\n\nPlease send all feature requests to the same email address.\n\nOf course, donations are welcome, but not required.\n\n$link" 20 80
       ;;
 
     newhostname)
@@ -150,8 +147,7 @@ tions are welcome, but not required.\n\n$link" 20 80
       choice=$?
       if [ $choice -eq 0 ]; then  # OK was pressed
         if [ `cat $tempfile | wc -w` -gt 0 ]; then    # user entered some text
-          actionreqwin "COMMANDS TO RUN" "\ncp $tempfile $HOSTFILE\nNEWNAME=`cat $tempfile`\nOLDNAME=`grep host: $META | awk
-'{print $NF}'`\nsed -i -e s/\$OLDNAME/\$NEWNAME/g $META"
+          actionreqwin "COMMANDS TO RUN" "\ncp $tempfile $HOSTFILE\nNEWNAME=`cat $tempfile`\nOLDNAME=`grep host: $META | awk '{print $NF}'`\nsed -i -e s/\$OLDNAME/\$NEWNAME/g $META"
           if [ $? -eq 0 ]; then   # User selected YES to actually run commands
             rw
             cp $tempfile $HOSTFILE
@@ -194,9 +190,7 @@ tions are welcome, but not required.\n\n$link" 20 80
             if [ $(mount | grep $BACKUPDIR | grep nfs | wc -l) -eq 1 ]; then
               progwin  "Running SD Card Image Backup - $IMGFILE"  "yes | $SCRIPTNAME" 40 70
             else
-              mesgwin  "ACTION REQUIRED"  "\nMount point $BACKUPDIR is not an NFS mount.  Please add the relevant entry in /e
-tc/fstab for the nfs mount and then run\n\n  mount $BACKUPDIR\n\nRetry again after NFS export is mounted on Pi.\n\nRecommend
-you run the script manually then try again.\n\n  $CMD" 20
+              mesgwin  "ACTION REQUIRED"  "\nMount point $BACKUPDIR is not an NFS mount.  Please add the relevant entry in /etc/fstab for the nfs mount and then run\n\n  mount $BACKUPDIR\n\nRetry again after NFS export is mounted on Pi.\n\nRecommend you run the script manually then try again.\n\n  $CMD" 20
             fi
           fi
         else
@@ -205,8 +199,7 @@ you run the script manually then try again.\n\n  $CMD" 20
         #check-run-script "$TITLE" $SCRIPTNAME 10 "-b"    # force to run in background
       else
         tempfile="/tmp/$SCRIPTNAME.ps"
-        ps -ef | grep $CMD| grep -v grep | awk '{print "Another SD Card Image backup is running.\nPlease wait for the other p
-rocess to finish.\n\nPID", $2, $5, $NF}' > $tempfile
+        ps -ef | grep $CMD| grep -v grep | awk '{print "Another SD Card Image backup is running.\nPlease wait for the other process to finish.\n\nPID", $2, $5, $NF}' > $tempfile
         textwin "INFORMATIONAL MESSAGE" "$tempfile"
       fi
       ;;
@@ -252,11 +245,9 @@ end_clientid
 
     freespace)
       FREEDUP=$( du -sh $CACHEDIR | awk '{print $1}' )
-      actionreqwin  "FREE UP SPACE"  "$(df -h / | grep dev)\nThis will free up $FREEDUP of space.\n\nAre you sure you want to
- clear out pacman pkg cache?"
+      actionreqwin  "FREE UP SPACE"  "$(df -h / | grep dev)\nThis will free up $FREEDUP of space.\n\nAre you sure you want to clear out pacman pkg cache?"
       if [ $? -eq 0 ]; then
-        progwin  "Cleared pacman cache"  "rw && rm -f $CACHEDIR/* && ro; df -h / | grep dev; echo ls -l $CACHEDIR; ls -l $CAC
-HEDIR" 10 70
+        progwin  "Cleared pacman cache"  "rw && rm -f $CACHEDIR/* && ro; df -h / | grep dev; echo ls -l $CACHEDIR; ls -l $CACHEDIR" 10 70
       fi
       ;;
 
@@ -288,8 +279,7 @@ HEDIR" 10 70
 
     update)
       ACTION="UPDATE"
-      actionreqwin  "$ACTION PI-KVM"  "\nYou are currently running v${kvmdver}\n\nAre you sure you want to $ACTION Pi-KVM OS/
-packages to v${KVMDNEW}?"
+      actionreqwin  "$ACTION PI-KVM"  "\nYou are currently running v${kvmdver}\n\nAre you sure you want to $ACTION Pi-KVM OS/packages to v${KVMDNEW}?"
       if [ $? -eq 0 ]; then
         progwin "$ACTION Pi-KVM OS"  "rw && pacman -Syy && pacman --noconfirm --ask=4 -Su"
         rebootreqd=1
