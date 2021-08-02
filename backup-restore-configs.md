@@ -1,4 +1,4 @@
-BACKUP
+**BACKUP**
 
 Backup your PiKVM configs using backup-pikvm script (https://github.com/srepac/packages/blob/master/backup-pikvm) into /usr/local/bin/ on the PiKVM.  
 The backup location example is in /mnt/DROPBOX/KVM-Backups which is an NFS share.  The backup tar file location will be at /var/lib/kvmd/msd/backups dir.
@@ -22,7 +22,7 @@ total 4972
 ```
 
 
-RESTORE
+**RESTORE**
 
 1.  Download new image from https://pikvm.org/download.html and image new SD card using Raspi Imager or Balena Etcher.
 
@@ -44,6 +44,8 @@ SAMPLE OUTPUT
 [  267.928582] sd 0:0:0:0: [sda] Attached SCSI removable disk
 [  267.936529] sd 0:0:0:3: [sdd] Attached SCSI removable disk
 ```
+
+**RUN ON LINUX HOST**
 
 3.  Mount the first two partitions of the new SD card (for example, new sd card is sda from previous step):
 
@@ -84,6 +86,8 @@ tar xvf /mnt/DROPBOX/KVM-Backups/dpikvm-20210801.tar
 ```
 umount /dev/sda[123]
 ```
+
+**RUN ON PIKVM**
 
 8.  Install missing packages needed by scripts and just overall better usability
 
