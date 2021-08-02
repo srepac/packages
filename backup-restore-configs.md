@@ -1,6 +1,6 @@
 BACKUP
 
-Backup your PiKVM configs using https://pikvmnerds.com:8443/PiKVM/backup-pikvm script into /usr/local/bin/ on the PiKVM.  
+Backup your PiKVM configs using backup-pikvm script (https://github.com/srepac/packages/backup-pikvm) into /usr/local/bin/ on the PiKVM.  
 The backup location example is in /mnt/DROPBOX/KVM-Backups which is an NFS share.
 
 ```
