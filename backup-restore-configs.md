@@ -5,7 +5,7 @@ Backup your PiKVM configs using backup-pikvm script.
 ```
 mount | grep nfs 
 cd /mnt/DROPBOX/KVM-Backups/
-./backup-pikvm
+backup-pikvm
 cp /var/lib/kvmd/msd/backups/*.tar .
 ```
 
