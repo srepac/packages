@@ -1,7 +1,7 @@
 BACKUP
 
 Backup your PiKVM configs using backup-pikvm script (https://github.com/srepac/packages/blob/master/backup-pikvm) into /usr/local/bin/ on the PiKVM.  
-The backup location example is in /mnt/DROPBOX/KVM-Backups which is an NFS share.
+The backup location example is in /mnt/DROPBOX/KVM-Backups which is an NFS share.  The backup tar file location will be at /var/lib/kvmd/msd/backups dir.
 
 ```
 backup-pikvm
