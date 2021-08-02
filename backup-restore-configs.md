@@ -1,3 +1,10 @@
+**BACKGROUND**
+
+Sometimes, it's a good idea to start with a fresh image of PiKVM.  However, you don't want to start over with all the time you took to configure the PiKVM the way you like.  You're in luck, because there's a way to backup all the configurations you've already performed so you don't have to replicate all the configs you did.  The method described below will restore your hostname, timezone, root password, web admin passwords, and any other scripts you were using (i.e. kvmd-oled and kvmd-fan).  I have tested this procedure on two different SD cards starting with the v3-hdmi-rpi4 image, but it can easily be used with v2-hdmi or v2-hdmiusb images.
+
+Please make sure you pay attention to each step, especially when you perform the `parted` and `mkfs.ext4` commands.  It is imperative that you make sure you use the correct device (i.e. sda, sdb, etc...).  I am not responsible for any damage you cause by following this document.
+
+
 **BACKUP**
 
 Backup your PiKVM configs using backup-pikvm script (https://github.com/srepac/packages/blob/master/backup-pikvm) into /usr/local/bin/ on the PiKVM.  
