@@ -11,6 +11,16 @@ cd /mnt/DROPBOX/KVM-Backups/
 cp /var/lib/kvmd/msd/backups/*.tar .
 ```
 
+SAMPLE BACKUP OUTPUT
+```
+[root@dpikvm KVM-Backups]# backup-pikvm
+Creating backup file /var/lib/kvmd/msd/backups/dpikvm-20210801.tar with contents of /etc/kvmd/ /usr/local/bin/ /etc/pacman.conf /root/ /etc/netctl/wlan* /etc/systemd/network/ /etc/ssh/ssh_host_* /etc/*shadow /etc/passwd /etc/group /etc/motd /etc/fstab /etc/hostname /etc/sudoers.d/ /etc/localtime /etc/systemd/system/multi-user.target.wants/ /usr/lib/systemd/system/kvmd* /usr/bin/kvmd* /etc/conf.d/rngd /home/
+
+ls -l /var/lib/kvmd/msd/backups
+total 4972
+-rw-r--r-- 1 root root 5089280 Aug  1 18:22 dpikvm-20210801.tar
+```
+
 
 RESTORE
 
