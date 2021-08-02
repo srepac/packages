@@ -1,6 +1,6 @@
 BACKUP
 
-Backup your PiKVM configs using backup-pikvm https://pikvmnerds.com:8443/PiKVM/backup-pikvm script.
+Backup your PiKVM configs using https://pikvmnerds.com:8443/PiKVM/backup-pikvm script.
 
 ```
 mount | grep nfs 
