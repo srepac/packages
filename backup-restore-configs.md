@@ -96,7 +96,7 @@ mkdir -p /mnt/DROPBOX; mount /mnt/DROPBOX
 ```
 
 
-10.  Force it to connect to your manually configured wifi SSID.
+10.  Force it to connect to your manually configured wifi SSID (restored from backup).
 
 ```
 wifi-menu -o
