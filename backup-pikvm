@@ -36,7 +36,7 @@ mkdir -p $BACKUPDIR
 BACKUPFILE="$BACKUPDIR/$(hostname)-$(date +%Y%m%d).tar"
 
 CONTENTS="/etc/kvmd/ /usr/local/bin/ /etc/pacman.conf /root/ /etc/netctl/wlan* /etc/systemd/network/ /etc/ssh/ssh_host_* /etc/*shadow /etc/passwd /etc/group /etc/motd /etc/fstab /etc/hostname /etc/sudoers.d/ /etc/localtime /etc/systemd/system/multi-user.target.wants/ /usr/lib/systemd/system/kvmd* /usr/bin/kvmd* /etc/conf.d/rngd /home/"
-BACKUPCMD="tar cf $BACKUPFILE $CONTENTS"
+BACKUPCMD="tar cf $BACKUPFILE --exclude=.cache $CONTENTS"
 
 # Backup critical files so you can easily rebuild your PiKVM by untar'ing the file
 echo "Creating backup file $BACKUPFILE with contents of $CONTENTS"
