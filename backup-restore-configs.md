@@ -14,7 +14,7 @@ RESTORE
 
 1.  Download new image from https://pikvm.org/download.html and image new SD card using Raspi Imager or Balena Etcher.
 
-2.  Connect new SD card image on another linux or pikvm host and look for new sd* device.  In the next steps, you will use the output from this command:
+2.  Connect new SD card on another linux or pikvm host and look for new sd* device.  In the next steps, you will use the output from this command:
 ```
 dmesg | tail
 ```
