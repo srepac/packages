@@ -14,12 +14,19 @@
 # /etc/netctl/wlan0*    all your wifi connections that you were currently using
 # /etc/systemd/network  For eth0 custom configs (static/dhcp)
 # /etc/ssh/ssh_host*    SSH host keys so you don't have to re-add to your knownhosts file
-# /etc/shadow           Contains your updated root password
+# /etc/*shadow           Contains your updated root password
+# /etc/passwd           user list
+# /etc/group            group list
 # /etc/motd             Message of the day banner
 # /etc/fstab            Filesystem table (in case you have NFS mounts)
 # /etc/hostname         Custom hostname
 # /etc/sudoers.d        In case you gave other users the ability to run sudo
 # /etc/localtime        Custom local timezone
+# /etc/systemd/system/multi-user.target.wants/   services that were running on PiKVM
+# /usr/lib/systemd/system/kvmd*
+# /usr/bin/kvmd*
+# /etc/conf.d/rngd
+# /home/
 #
 BACKUPDIR="/var/lib/kvmd/msd/backups"
 mount -o remount,rw /var/lib/kvmd/msd
@@ -28,7 +35,7 @@ mkdir -p $BACKUPDIR
 # Create backup file name as hostname-YYYYMMDD.tar file
 BACKUPFILE="$BACKUPDIR/$(hostname)-$(date +%Y%m%d).tar"
 
-CONTENTS="/etc/kvmd/ /usr/local/bin/ /etc/pacman.conf /root/ /etc/netctl/wlan* /etc/systemd/network/ /etc/ssh/ssh_host_* /etc/shadow /etc/motd /etc/fstab /etc/hostname /etc/sudoers.d/ /etc/localtime"
+CONTENTS="/etc/kvmd/ /usr/local/bin/ /etc/pacman.conf /root/ /etc/netctl/wlan* /etc/systemd/network/ /etc/ssh/ssh_host_* /etc/*shadow /etc/passwd /etc/group /etc/motd /etc/fstab /etc/hostname /etc/sudoers.d/ /etc/localtime /etc/systemd/system/multi-user.target.wants/ /usr/lib/systemd/system/kvmd* /usr/bin/kvmd* /etc/conf.d/rngd /home/"
 BACKUPCMD="tar cf $BACKUPFILE $CONTENTS"
 
 # Backup critical files so you can easily rebuild your PiKVM by untar'ing the file
