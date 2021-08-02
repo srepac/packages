@@ -35,7 +35,7 @@ SAMPLE OUTPUT
 [  267.936529] sd 0:0:0:3: [sdd] Attached SCSI removable disk
 ```
 
-3.  Mount the first two partitions of the new SD card (for exmample, new sd card is sda from previous step):
+3.  Mount the first two partitions of the new SD card (for example, new sd card is sda from previous step):
 
 ```
 mkdir -p /mnt/sda{1,2,3}
