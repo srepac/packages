@@ -1,9 +1,9 @@
 THIS PROCEDURE WAS PERFORMED ON PI4 with USB-HDMI dongle and power/data splitter
 
 Requirements:   
-  - working Rpi4 Pi-KVM w/ USB dongle based on Arch Linux
-  - Pi4 KVM with USB dongle and power/data splitter
   - NFS server with export for backup location that will be mounted on both Pi4
+  - Rpi4 Pi-KVM w/ USB dongle based on Arch Linux
+  - Pi4 KVM with USB dongle and power/data splitter (Pibuntu)
   - /boot/firmware/config.txt for Pibuntu
   ```###
 # srepac custom configs
