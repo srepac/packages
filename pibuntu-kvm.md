@@ -4,7 +4,36 @@ Requirements:
   - working Rpi4 Pi-KVM w/ USB dongle based on Arch Linux
   - Pi4 KVM with USB dongle and power/data splitter
   - NFS server with export for backup location that will be mounted on both Pi4
+  - /boot/firmware/config.txt for Pibuntu
+  ```###
+# srepac custom configs
+###
+hdmi_force_hotplug=1
+gpu_mem=256
+enable_uart=1
+#dtoverlay=tc358743
+dtoverlay=disable-bt
+dtoverlay=dwc2,dr_mode=peripheral
+dtparam=act_led_gpio=13
 
+# HDMI audio capture
+#dtoverlay=tc358743-audio
+
+# SPI (AUM)
+#dtoverlay=spi0-1cs
+
+# I2C (display)
+dtparam=i2c_arm=on
+
+# Clock
+dtoverlay=i2c-rtc,pcf8563
+```
+  - /etc/modules on Pi Ubuntu 
+```
+dwc2
+libcomposite
+i2c-dev
+```
 
 STEP-BY-STEP INSTRUCTIONS:
 
