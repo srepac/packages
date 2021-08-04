@@ -47,6 +47,7 @@ STEP-BY-STEP INSTRUCTIONS:
 pacman -S nfs-utils
 mkdir -p /mnt/DROPBOX
 mount /mnt/DROPBOX
+mkdir -p /mnt/DROPBOX/KVM-Backups/IMAGES
 
 cd /var/cache/pacman/pkg/
 cp kvmd*3.13*.xz kvmd-webterm*.xz /mnt/DROPBOX/KVM-Backups/IMAGES/
