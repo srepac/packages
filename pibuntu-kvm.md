@@ -28,7 +28,7 @@ dtparam=i2c_arm=on
 # Clock
 dtoverlay=i2c-rtc,pcf8563
 ```
-  - /etc/modules on Pi Ubuntu 
+  - /etc/modules entries for Pibuntu 
 ```
 dwc2
 libcomposite
