@@ -90,7 +90,7 @@ SCRIPT TO INSTALL ALL python3-* packages (all inclusive)
 ```
 #!/bin/bash
 # all python3-* packages in use by Arch based Pi-KVM
-for i in `
+for i in `echo "
 aiofiles
 aiohttp
 appdirs
@@ -144,7 +144,7 @@ urllib3
 wrapt
 xlib
 yaml
-yarl
+yarl"
 `
 do
   apt install python3-$i
