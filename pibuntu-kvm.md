@@ -59,7 +59,8 @@ unxz kvmd*.xz
 1.  Install ubuntu on Rpi4.  Login and become root.  Install python3 and ustreamer, extract tar files from NFS mount into /, and move kvmd python scripts to the correct location for ubuntu.
 
 https://ubuntu.com/tutorials/how-to-install-ubuntu-desktop-on-raspberry-pi-4
-ustreamer 3.16      https://packages.ubuntu.com/hirsute/ustreamer
+
+ustreamer   3.16      https://packages.ubuntu.com/hirsute/ustreamer
 
 ```
 apt install python3 ustreamer
