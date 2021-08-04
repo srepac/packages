@@ -218,7 +218,7 @@ kvmd:
             device: /dev/kvmd-hid-mouse-alt
     atx:
         type: disabled
-    streamer:
+	streamer:
         forever: true
         cmd_remove:
             - "--format=mjpeg"  # required as ustreamer 3.16 doesn't support this format
@@ -229,7 +229,29 @@ kvmd:
             default: 1280x720
 ```
 
-9.  START AND VERIFY SERVICES ARE ACTIVE/RUNNING
+
+9.  FORMAT AND USE THUMBDRIVE FOR /var/lib/kvmd/msd
+
+```
+dmesg | tail     # check for sd
+fdisk -l /dev/sda
+```
+
+Add /etc/fstab entry for thumb drive used as MSD after you create one partition
+```
+/dev/sda1       /var/lib/kvmd/msd       ext4    nodev,nosuid,noexec,ro,errors=remount-ro,data=journal,X-kvmd.otgmsd-root=/var/lib/kvmd/msd,X-kvmd.otgmsd-user=kvmd  0   0
+```
+Create one partition for your thumb drive
+```
+fdisk /dev/sda
+```
+```
+mkfs.ext4 -F -m 0 /dev/sda1
+mount /dev/sda1
+```
+
+
+10.  START AND VERIFY SERVICES ARE ACTIVE/RUNNING
 
 ```
 systemctl start kvmd-nginx 
@@ -309,4 +331,3 @@ SAMPLE OUTPUT KVMD creating separate processes for keyboard, video (ustreamer) a
              └─537734 kvmd/streamer: /usr/bin/ustreamer --device=/dev/kvmd-video --persistent --resolution=1280x720 --desire>
 
 ```
-
