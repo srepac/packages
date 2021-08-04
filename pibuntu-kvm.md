@@ -305,7 +305,7 @@ Aug 03 22:54:55 rpi8g kvmd-otg[156006]: kvmd.apps.otg                     INFO -
 Aug 03 22:54:55 rpi8g systemd[1]: Finished Pi-KVM - OTG setup.
 ```
 
-**NOTE:  BEFORE Starting kvmd service, you need to comment out line 81 in /usr/lib/python3.9/site-packages/kvmd/plugins/ugpio/gpio.py**
+**NOTE:  BEFORE Starting kvmd service, you need to comment out line 81 in /usr/lib/python3.9/dist-packages/kvmd/plugins/ugpio/gpio.py**
 
         #self.__chip = gpiod.Chip(self.__device_path)
 
