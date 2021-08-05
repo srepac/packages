@@ -338,3 +338,5 @@ SAMPLE OUTPUT KVMD creating separate processes for keyboard, video (ustreamer) a
              └─537734 kvmd/streamer: /usr/bin/ustreamer --device=/dev/kvmd-video --persistent --resolution=1280x720 --desire>
 
 ```
+
+11.  Point a browser to https://<hostname> and enjoy your new working pibuntu KVM.  Other kvmd services will be working :copyright:**soon**:tm:
