@@ -219,7 +219,6 @@ ls -l /dev/kvmd-video
 8.  REQUIRED /etc/kvmd/override.yaml entries
 
 ```
-root@rpi8g:~# cat /etc/kvmd/override.yaml  | grep -v ^#
 kvmd:
     hid:
         mouse_alt:
