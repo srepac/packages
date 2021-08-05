@@ -226,7 +226,7 @@ kvmd:
             device: /dev/kvmd-hid-mouse-alt
     atx:
         type: disabled
-	streamer:
+    streamer:
         forever: true
         cmd_remove:
             - "--format=mjpeg"  # required as ustreamer 3.16 doesn't support this format
