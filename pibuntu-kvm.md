@@ -159,13 +159,20 @@ cd /sys/kernel/config/usb_gadget/kvmd/functions
 mkdir hid.usb0  hid.usb1  hid.usb2  mass_storage.usb0
 ```
 
-4.  ENABLE REQUIRED KVMD SERVICES BUT DO NOT START THEM
+4.  ENABLE REQUIRED KVMD SERVICES BUT DO NOT START THEM.  Also, create SSL server certs for nginx and vnc.
 
 ```
 systemctl enable kvmd-nginx.service
 systemctl enable kvmd-otg.service
 systemctl enable kvmd.service
+
+cd /etc/kvmd/nginx/ssl
+openssl ecparam -out server.key -name prime256v1 -genkey
+openssl req -new -x509 -sha256 -nodes -key server.key -out server.crt -days 3650 \
+        -subj "/C=US/ST=Denial/L=Denial/O=Pi-KVM/OU=Pi-KVM/CN=$(hostname)"
+cp server* /etc/kvmd/vnc/ssl/
 ```
+
 
 5.  CREATE SYMLINK for nginx since pi-kvm python script requires nginx to be in /usr/bin/
 
