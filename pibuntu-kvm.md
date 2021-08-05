@@ -339,4 +339,4 @@ SAMPLE OUTPUT KVMD creating separate processes for keyboard, video (ustreamer) a
 
 ```
 
-11.  Point a browser to https://<hostname> and enjoy your new working pibuntu KVM.  Other kvmd services will be working :copyright:**soon**:tm:
+11.  Point a browser to https://\<pikvm-hostname\> and enjoy your new working pibuntu KVM.  Other kvmd services will be working :copyright:**soon**:tm:
