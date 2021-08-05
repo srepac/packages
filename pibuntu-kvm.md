@@ -4,7 +4,7 @@ Requirements:
   - NFS server with export for backup location that will be mounted on both Pi4
   - USB thumbdrive for mass storage device (16GB or higher -- needs to be formatted ext4)
   - Working Rpi4 Pi-KVM w/ USB dongle based on Arch Linux
-  - Rpi4 with USB dongle and power/data splitter (this will be the Pibuntu)
+  - Rpi4 4GB+ RAM with USB dongle and power/data splitter (this will be the Pibuntu)
   - /boot/firmware/config.txt for Pibuntu
   ```###
 # srepac custom configs
