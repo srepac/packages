@@ -34,14 +34,14 @@ show-links() {
 get-file() {
    FILE="$1"
    #echo
-   #echo "-> wget $WEBSITE/$LINK -O $FILE"
+   echo "-> wget $WEBSITE/$LINK -O $FILE"
    wget $WEBSITE/$LINK -O $FILE 2> /dev/null > /dev/null
 
    dos2unix $FILE
 
    if [[ $( echo $FILE | grep \.yaml | wc -l ) -ne 1 ]]; then
         chmod +x $FILE
-        echo "-> Script [ $FILE ] is now executable. To run script, type ./$FILE"
+        echo "-> Script [ $FILE ] is now executable. To run script, type $FILE"
    else
         echo "-> YAML [ $FILE ] is now ready.  Please copy to /etc/kvmd/override.yaml and reboot"
    fi
