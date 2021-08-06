@@ -223,8 +223,7 @@ kvmd:
     hid:
         mouse_alt:
             device: /dev/kvmd-hid-mouse-alt
-    atx:
-        type: disabled
+
     streamer:
         forever: true
         cmd_remove:
