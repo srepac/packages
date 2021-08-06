@@ -1,4 +1,5 @@
 THIS PROCEDURE WAS PERFORMED ON PI4 with USB-HDMI dongle and power/data splitter
+NOTE:  This is a work in progress and is not complete.. yet
 
 Requirements:   
   - NFS server with export for backup location that will be mounted on both Pi4
