@@ -71,7 +71,7 @@ tar xvf /mnt/DROPBOX/KVM-Backups/IMAGES/kvmd-platform-v2-hdmiusb-rpi4-3.13-1-any
 tar xvf /mnt/DROPBOX/KVM-Backups/IMAGES/kvmd-webterm-0.40-1-any.pkg.tar
 tar xvf /mnt/DROPBOX/KVM-Backups/IMAGES/kvmd-3.13-1-any.pkg.tar
 
-mv /usr/lib/python3.0/site-packages/kvmd* /usr/lib/python3.9/dist-packages
+mv /usr/lib/python3.9/site-packages/kvmd* /usr/lib/python3.9/dist-packages
 ```
 
 2.  Install required packages (**hint: running `kvmd -m` will keep giving you package names that are required**)
