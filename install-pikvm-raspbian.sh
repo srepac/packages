@@ -1,17 +1,17 @@
 #!/bin/bash
 # created by @srepac   08/09/2011   srepac@kvmnerds.com
 # Scripted Installer of Pi-KVM on Raspbian (32-bit) meant for RPi4
+#
 # *** MSD is disabled by default ***
+#
 # Mass Storage Device requires the use of a USB thumbdrive or SSD and will need to be added in /etc/fstab
 : '
 # SAMPLE /etc/fstab entry for USB drive with only one partition formatted as ext4 for the entire drive:
 
 /dev/sda1  /var/lib/kvmd/msd   ext4  nodev,nosuid,noexec,ro,errors=remount-ro,data=journal,X-kvmd.otgmsd-root=/var/lib/kvmd/msd,X-kvmd.otgmsd-user=kvmd  0  0
 
-#
-#
 '
-# NOTE:  This was tested on a new install of raspbian, but should works on existing as well
+# NOTE:  This was tested on a new install of raspbian, but should also work on an existing install.
 #
 set +x
 PIKVMREPO="https://pikvm.org/repos/rpi4"
@@ -32,7 +32,7 @@ fi
 press-enter() {
   echo 
   read -p "Press ENTER to continue or CTRL+C to break out of script."
-} #
+} # end press-enter
 
 gen-ssl-certs() {
   cd /etc/kvmd/nginx/ssl
@@ -81,71 +81,16 @@ CSIOVERRIDE
   fi
 } # end create-override
 
-
 install-python-packages() { 
-  for i in `echo "
-aiofiles
-aiohttp
-appdirs
-asn1crypto
-async-timeout
-attrs
-bottle
-cbor2
-cffi
-chardet
-click
-colorama
-cryptography
-dateutil
-deprecated
-hidapi
-idna
-libgpiod
-luma-core
-luma-oled
-marshmallow
-more-itertools
-multidict
-netifaces
-ordered-set
-packaging
-pam
-passlib
-pillow
-ply
-psutil
-pycparser
-pyelftools
-pyftdi
-pyghmi
-pygments
-pyparsing
-pyserial
-pyusb
-raspberry-gpio
-requests
-semantic-version
-setproctitle
-setuptools
-six
-smbus2
-spidev
-systemd
-tabulate
-typing_extensions
-urllib3
-wrapt
-xlib
-yaml
-yarl"
-`
-do
-  echo "apt-get install python3-$i -y"
-  apt-get install python3-$i -y > /dev/null
-done
+  for i in $( echo "aiofiles aiohttp appdirs asn1crypto async-timeout attrs bottle cbor2 cffi chardet click colorama cryptography
+dateutil deprecated hidapi idna libgpiod luma-core luma-oled marshmallow more-itertools multidict netifaces ordered-set
+packaging pam passlib pillow ply psutil pycparser pyelftools pyftdi pyghmi pygments pyparsing pyserial pyusb raspberry-gpio
+requests semantic-version setproctitle setuptools six smbus2 spidev systemd tabulate typing_extensions urllib3 wrapt xlib yaml yarl" )
+  do
+    echo "apt-get install python3-$i -y"
+    apt-get install python3-$i -y > /dev/null
+  done
 } # end install python-packages
-
 
 otg-devices() {
   modprobe libcomposite
@@ -156,7 +101,6 @@ otg-devices() {
   fi
 } # end otg-device creation
 
-
 install-tc358743() {
   ### CSI Support for Raspbian ###
   curl https://www.linux-projects.org/listing/uv4l_repo/lpkey.asc | apt-key add -
@@ -166,7 +110,6 @@ install-tc358743() {
   echo "apt-get install uv4l-tc358743-extras -y" 
   apt-get install uv4l-tc358743-extras -y > /dev/null
 } # install package for tc358743
-
 
 boot-files() { 
   if [[ $( grep srepac /boot/config.txt | wc -l ) -eq 0 ]]; then
@@ -250,7 +193,6 @@ CSIFIRMWARE
   cat /etc/modules
 } # end of necessary boot files
 
-
 get-packages() { 
   printf "\n\n-> Getting Pi-KVM packages from ${PIKVMREPO}\n\n"
   mkdir -p ${KVMDCACHE}
@@ -272,7 +214,6 @@ get-packages() {
   echo
 } # end get-packages function
 
-
 get-platform() {
   tryagain=1
   while [ $tryagain -eq 1 ]; do
@@ -289,7 +230,6 @@ get-platform() {
     echo
   done
 } # end get-platform
-
 
 install-kvmd-pkgs() {
   cd /
@@ -310,14 +250,12 @@ install-kvmd-pkgs() {
   done
 } # end install-kvmd-pkgs
 
-
 fix-udevrules() { 
   # for hdmiusb, replace %b with 1-1.4:1.0 in /etc/udev/rules.d/99-kvmd.rules
   sed -i -e 's+\%b+1-1.4:1.0+g' /etc/udev/rules.d/99-kvmd.rules
   echo
   cat /etc/udev/rules.d/99-kvmd.rules
 } # end fix-udevrules
-
 
 enable-kvmd-svcs() { 
   # enable KVMD services but don't start them
@@ -331,7 +269,6 @@ enable-kvmd-svcs() {
     systemctl enable kvmd-tc358743 
   fi
 } # end enable-kvmd-svcs 
-
 
 build-ustreamer() {
   printf "\n\n-> Building ustreamer 4.4\n\n"
@@ -348,7 +285,6 @@ build-ustreamer() {
   # kvmd service is looking for /usr/bin/ustreamer   
   ln -s /usr/local/bin/ustreamer* /usr/bin/
 } # end build-ustreamer 4.4
-
 
 install-dependencies() {
   echo
@@ -393,7 +329,6 @@ libgpiod screen tmate nfs-common libevent-pthreads libevent gpiod ffmpeg" )
   fi
 } # end install-dependencies
 
-
 fix-nginx-symlinks() {
   # disable default nginx service since we will use kvmd-nginx instead 
   echo
@@ -414,7 +349,6 @@ fix-nginx-symlinks() {
   fi
 } # end fix-nginx-symlinks
 
-
 fix-webterm() {
   echo
   echo "-> Creating kvmd-webterm homedir"
@@ -423,10 +357,9 @@ fix-webterm() {
   ls -ld /home/kvmd-webterm
 } # end fix-webterm
 
-
 create-kvmdfix() { 
-# Create kvmd-fix service and script
-cat <<ENDSERVICE > /lib/systemd/system/kvmd-fix.service
+  # Create kvmd-fix service and script
+  cat <<ENDSERVICE > /lib/systemd/system/kvmd-fix.service
 [Unit]
 Description=KVMD Fixes
 After=network.target network-online.target nss-lookup.target
@@ -441,7 +374,7 @@ ExecStart=/usr/bin/kvmd-fix
 WantedBy=multi-user.target
 ENDSERVICE
 
-cat <<SCRIPTEND > /usr/bin/kvmd-fix
+  cat <<SCRIPTEND > /usr/bin/kvmd-fix
 #!/bin/bash
 # Written by @srepac
 # 1.  Poperly set group ownership of /dev/gpio*
@@ -457,9 +390,9 @@ ls -l /dev/kvmd-video
 rm /dev/kvmd-video
 ln -s video0 /dev/kvmd-video
 SCRIPTEND
+
   chmod +x /usr/bin/kvmd-fix
 } # end create-kvmdfix
-
 
 set-ownership() {
   # set proper ownership of password files and kvmd-webterm homedir
@@ -492,13 +425,11 @@ check-kvmd-works() {
   done
 } # end check-kvmd-works
 
-
 start-svc() {
   SVC="$1"
   systemctl restart $SVC 
   #journalctl -xeu $SVC 
 } # end start-srvc
-
 
 start-kvmd-svcs() {
   #### start the main KVM services in order ####
@@ -511,7 +442,6 @@ start-kvmd-svcs() {
   sleep 5
   start-svc kvmd
 } # end start-kvmd-svcs
-
 
 fix-motd() { 
 if [ $( grep pikvm /etc/motd | wc -l ) -eq 0 ]; then
