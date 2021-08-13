@@ -1,9 +1,18 @@
 #!/bin/bash
+# created by @srepac   08/09/2011   srepac@kvmnerds.com
+# Scripted Installer of Pi-KVM on Raspbian (32-bit) meant for RPi4
+# *** MSD is disabled by default ***
+# Mass Storage Device requires the use of a USB thumbdrive or SSD and will need to be added in /etc/fstab
+: '
+# SAMPLE /etc/fstab entry for USB drive with only one partition formatted as ext4 for the entire drive:
+
+/dev/sda1  /var/lib/kvmd/msd   ext4  nodev,nosuid,noexec,ro,errors=remount-ro,data=journal,X-kvmd.otgmsd-root=/var/lib/kvmd/msd,X-kvmd.otgmsd-user=kvmd  0  0
+
 #
-# Scripted install of Pi-KVM on Raspbian (32-bit) meant for RPi4
 #
-# created by @srepac
-# NOTE:  this works on a new install of raspbian
+'
+# NOTE:  This was tested on a new install of raspbian, but should works on existing as well
+#
 set +x
 PIKVMREPO="https://pikvm.org/repos/rpi4"
 KVMDCACHE="/var/cache/kvmd"
@@ -509,19 +518,18 @@ if [ $( grep pikvm /etc/motd | wc -l ) -eq 0 ]; then
   cp /etc/motd /tmp/motd; rm /etc/motd
 
   printf "
-         _____ _        _  ____      ____  __
-        |  __ (_)      | |/ /\ \    / /  \/  |
-        | |__) |   __  | ' /  \ \  / /| \  / |
-        |  ___/ | (__) |  <    \ \/ / | |\/| |
-        | |   | |      | . \    \  /  | |  | |
-        |_|   |_|      |_|\_\    \/   |_|  |_|
+         ____  ____  _        _  ____     ____  __
+        |  _ \|  _ \(_)      | |/ /\ \   / /  \/  |
+        | |_) | |_) | |  __  | ' /  \ \ / /| |\/| |
+        |  _ <|  __/| | (__) | . \   \ V / | |  | |
+        |_| \_\_|   |_|      |_|\_\   \_/  |_|  |_|
 
     Welcome to Raspbian-KVM - Open Source IP-KVM based on Raspberry Pi
     ____________________________________________________________________________
 
-    To prevent kernel messages from printing to the terminal use \"dmesg -n 1\".
+    To prevent kernel messages from printing to the terminal use "dmesg -n 1".
 
-    To change KVM password use command \"kvmd-htpasswd set admin\".
+    To change KVM password use command "kvmd-htpasswd set admin".
 
     Useful links:
       * https://pikvm.org
@@ -537,8 +545,9 @@ fi
 # Install is done in two parts
 # First part requires a reboot in order to create kvmd users and groups
 # Second part will start the necessary kvmd services
-# added option to re-install by adding -f parameter
+# added option to re-install by adding -f parameter (for use as platform switcher)
 if [[ $( grep kvmd /etc/passwd | wc -l ) -eq 0 || "$1" == "-f" ]]; then
+  printf "\nRunning part 1 of PiKVM installer script for Raspbian by @srepac\n"
   get-packages
   get-platform
   boot-files
@@ -555,6 +564,7 @@ if [[ $( grep kvmd /etc/passwd | wc -l ) -eq 0 || "$1" == "-f" ]]; then
   press-enter
   reboot
 else
+  printf "\nRunning part 2 of PiKVM installer script for Raspbian by @srepac\n"
   fix-nginx-symlinks
   fix-webterm
   fix-motd
