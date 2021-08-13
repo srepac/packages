@@ -527,9 +527,9 @@ if [ $( grep pikvm /etc/motd | wc -l ) -eq 0 ]; then
     Welcome to Raspbian-KVM - Open Source IP-KVM based on Raspberry Pi
     ____________________________________________________________________________
 
-    To prevent kernel messages from printing to the terminal use "dmesg -n 1".
+    To prevent kernel messages from printing to the terminal use \"dmesg -n 1\".
 
-    To change KVM password use command "kvmd-htpasswd set admin".
+    To change KVM password use command \"kvmd-htpasswd set admin\".
 
     Useful links:
       * https://pikvm.org
