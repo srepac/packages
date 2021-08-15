@@ -23,14 +23,14 @@ if [[ "$1" == "-h" || "$1" == "--help" ]]; then
   exit 1
 fi
 
-WHOAMI=$( whoami ) 
+WHOAMI=$( whoami )
 if [ "$WHOAMI" != "root" ]; then
   echo "$WHOAMI, please run script as root."
   exit 1
 fi
 
 press-enter() {
-  echo 
+  echo
   read -p "Press ENTER to continue or CTRL+C to break out of script."
 } # end press-enter
 
@@ -81,7 +81,7 @@ CSIOVERRIDE
   fi
 } # end create-override
 
-install-python-packages() { 
+install-python-packages() {
   for i in $( echo "aiofiles aiohttp appdirs asn1crypto async-timeout attrs bottle cbor2 cffi chardet click colorama cryptography
 dateutil deprecated hidapi idna libgpiod luma-core luma-oled marshmallow more-itertools multidict netifaces ordered-set
 packaging pam passlib pillow ply psutil pycparser pyelftools pyftdi pyghmi pygments pyparsing pyserial pyusb raspberry-gpio
@@ -107,11 +107,11 @@ install-tc358743() {
   echo "deb https://www.linux-projects.org/listing/uv4l_repo/raspbian/stretch stretch main" | tee /etc/apt/sources.list.d/uv4l.list
 
   apt-get update > /dev/null
-  echo "apt-get install uv4l-tc358743-extras -y" 
+  echo "apt-get install uv4l-tc358743-extras -y"
   apt-get install uv4l-tc358743-extras -y > /dev/null
 } # install package for tc358743
 
-boot-files() { 
+boot-files() {
   if [[ $( grep srepac /boot/config.txt | wc -l ) -eq 0 ]]; then
 
     if [[ $( echo $platform | grep usb | wc -l ) -eq 1 ]]; then
@@ -171,9 +171,9 @@ CSIFIRMWARE
         echo "tc358743" >> /etc/modules
       fi
 
-      install-tc358743 
+      install-tc358743
 
-    fi 
+    fi
   fi  # end of check if entries are already in /boot/config.txt
 
   # /etc/modules required entries for DWC2, HID and I2C
@@ -193,7 +193,7 @@ CSIFIRMWARE
   cat /etc/modules
 } # end of necessary boot files
 
-get-packages() { 
+get-packages() {
   printf "\n\n-> Getting Pi-KVM packages from ${PIKVMREPO}\n\n"
   mkdir -p ${KVMDCACHE}
   echo "wget ${PIKVMREPO} -O ${PKGINFO}"
@@ -217,9 +217,9 @@ get-packages() {
 get-platform() {
   tryagain=1
   while [ $tryagain -eq 1 ]; do
-    printf "Choose which capture device you will use:\n\n  1 - USB dongle\n  2 - v2 CSI\n  3 - V3 HAT\n" 
+    printf "Choose which capture device you will use:\n\n  1 - USB dongle\n  2 - v2 CSI\n  3 - V3 HAT\n"
     read -p "Please type [1-3]: " capture
-    case $capture in 
+    case $capture in
       1) platform="kvmd-platform-v2-hdmiusb-rpi4"; tryagain=0;;
       2) platform="kvmd-platform-v2-hdmi-rpi4"; tryagain=0;;
       3) platform="kvmd-platform-v3-hdmi-rpi4"; tryagain=0;;
@@ -234,41 +234,41 @@ get-platform() {
 install-kvmd-pkgs() {
   cd /
 
-  INSTLOG="${KVMDCACHE}/installed_ver.txt"; rm -f $INSTLOG 
-  date > $INSTLOG 
+  INSTLOG="${KVMDCACHE}/installed_ver.txt"; rm -f $INSTLOG
+  date > $INSTLOG
 
 # uncompress platform package first
   i=$( ls ${KVMDCACHE}/${platform}-*.tar.xz )
-  echo "-> Extracting package $i into /" >> $INSTLOG 
-  tar xfJ $i 
+  echo "-> Extracting package $i into /" >> $INSTLOG
+  tar xfJ $i
 
-# then uncompress, kvmd-{version}, kvmd-webterm, and janus packages 
+# then uncompress, kvmd-{version}, kvmd-webterm, and janus packages
   for i in $( ls ${KVMDCACHE}/*.tar.xz | egrep 'kvmd-[0-9]|janus|webterm' )
   do
-    echo "-> Extracting package $i into /" >> $INSTLOG 
+    echo "-> Extracting package $i into /" >> $INSTLOG
     tar xfJ $i
   done
 } # end install-kvmd-pkgs
 
-fix-udevrules() { 
+fix-udevrules() {
   # for hdmiusb, replace %b with 1-1.4:1.0 in /etc/udev/rules.d/99-kvmd.rules
   sed -i -e 's+\%b+1-1.4:1.0+g' /etc/udev/rules.d/99-kvmd.rules
   echo
   cat /etc/udev/rules.d/99-kvmd.rules
 } # end fix-udevrules
 
-enable-kvmd-svcs() { 
+enable-kvmd-svcs() {
   # enable KVMD services but don't start them
   echo "-> Enabling kvmd-nginx kvmd-webterm kvmd-otg and kvmd services, but do not start them."
-  systemctl enable kvmd-nginx kvmd-webterm kvmd-otg kvmd 
+  systemctl enable kvmd-nginx kvmd-webterm kvmd-otg kvmd
 
   # in case going from CSI to USB, then disable kvmd-tc358743 service (in case it's enabled)
   if [[ $( echo $platform | grep usb | wc -l ) -eq 1 ]]; then
-    systemctl disable --now kvmd-tc358743 
+    systemctl disable --now kvmd-tc358743
   else
-    systemctl enable kvmd-tc358743 
+    systemctl enable kvmd-tc358743
   fi
-} # end enable-kvmd-svcs 
+} # end enable-kvmd-svcs
 
 build-ustreamer() {
   printf "\n\n-> Building ustreamer 4.4\n\n"
@@ -282,7 +282,7 @@ build-ustreamer() {
   make WITH_OMX=1 WITH_GPIO=1 WITH_SETPROCTITLE=1
   make install
 
-  # kvmd service is looking for /usr/bin/ustreamer   
+  # kvmd service is looking for /usr/bin/ustreamer
   ln -s /usr/local/bin/ustreamer* /usr/bin/
 } # end build-ustreamer 4.4
 
@@ -291,8 +291,8 @@ install-dependencies() {
   echo "-> Installing dependencies for pikvm"
 
   apt-get update > /dev/null
-  for i in $( echo "nginx python3 net-tools python3-pygments python3-aiofiles python3-setproctitle 
-python3-aiohttp expect v4l-utils iptables python3-xlib python3-auth python3-psutil ttyd vim 
+  for i in $( echo "nginx python3 net-tools python3-pygments python3-aiofiles python3-setproctitle
+python3-aiohttp expect v4l-utils iptables python3-xlib python3-auth python3-psutil ttyd vim
 libgpiod screen tmate nfs-common libevent-pthreads libevent gpiod ffmpeg" )
   do
     echo "apt-get install -y $i"
@@ -320,19 +320,32 @@ libgpiod screen tmate nfs-common libevent-pthreads libevent gpiod ffmpeg" )
     wget http://ftp.us.debian.org/debian/pool/main/libe/libevent/libevent-core-2.1-7_2.1.12-stable-1_armhf.deb 2> /dev/null
     dpkg -i libevent-core-2.1-7_2.1.12-stable-1_armhf.deb
     wget http://ftp.us.debian.org/debian/pool/main/libe/libevent/libevent-2.1-7_2.1.12-stable-1_armhf.deb 2> /dev/null
-    dpkg -i libevent-2.1-7_2.1.12-stable-1_armhf.deb 
+    dpkg -i libevent-2.1-7_2.1.12-stable-1_armhf.deb
     wget http://ftp.us.debian.org/debian/pool/main/libe/libevent/libevent-pthreads-2.1-7_2.1.12-stable-1_armhf.deb 2> /dev/null
-    dpkg -i libevent-pthreads-2.1-7_2.1.12-stable-1_armhf.deb 
+    dpkg -i libevent-pthreads-2.1-7_2.1.12-stable-1_armhf.deb
 
     build-ustreamer
 
   fi
 } # end install-dependencies
 
+python-pkg-dir() {
+  # create quick python script to show where python packages need to go
+  cat << MYSCRIPT > /tmp/syspath.py
+#!$(which python)
+import sys
+print (sys.path)
+MYSCRIPT
+
+  chmod +x /tmp/syspath.py
+
+  PYTHONDIR=$( /tmp/syspath.py | grep packages | sed -e 's/, /\n/g' -e 's/\[//g' -e 's/\]//g' -e "s+'++g" | tail -1 )
+} # end python-pkg-dir
+
 fix-nginx-symlinks() {
-  # disable default nginx service since we will use kvmd-nginx instead 
+  # disable default nginx service since we will use kvmd-nginx instead
   echo
-  echo "-> Disabling nginx service, so that we can use kvmd-nginx instead" 
+  echo "-> Disabling nginx service, so that we can use kvmd-nginx instead"
   systemctl disable --now nginx
 
   # setup symlinks
@@ -343,7 +356,8 @@ fix-nginx-symlinks() {
   if [ ! -e /usr/bin/iptables ]; then ln -s /usr/sbin/iptables /usr/bin/iptables; fi
   if [ ! -e /opt/vc/bin/vcgencmd ]; then mkdir -p /opt/vc/bin/; ln -s /usr/bin/vcgencmd /opt/vc/bin/vcgencmd; fi
 
-  PYTHONDIR=$( ls -ld /usr/lib/python3*/dist-packages/ | awk '{print $NF}' )
+  python-pkg-dir
+
   if [ ! -e $PYTHONDIR/kvmd ]; then
     ln -s /usr/lib/python3.9/site-packages/kvmd* ${PYTHONDIR}
   fi
@@ -357,7 +371,7 @@ fix-webterm() {
   ls -ld /home/kvmd-webterm
 } # end fix-webterm
 
-create-kvmdfix() { 
+create-kvmdfix() {
   # Create kvmd-fix service and script
   cat <<ENDSERVICE > /lib/systemd/system/kvmd-fix.service
 [Unit]
@@ -417,7 +431,7 @@ check-kvmd-works() {
         echo "Please install missing packages as per the kvmd -m output in another ssh/terminal."
         ;;
       y|Y|Yes|yes)
-        invalid=0	
+        invalid=0
         ;;
       *)
         echo "Try again.";;
@@ -427,8 +441,8 @@ check-kvmd-works() {
 
 start-svc() {
   SVC="$1"
-  systemctl restart $SVC 
-  #journalctl -xeu $SVC 
+  systemctl restart $SVC
+  #journalctl -xeu $SVC
 } # end start-srvc
 
 start-kvmd-svcs() {
@@ -443,7 +457,7 @@ start-kvmd-svcs() {
   start-svc kvmd
 } # end start-kvmd-svcs
 
-fix-motd() { 
+fix-motd() {
 if [ $( grep pikvm /etc/motd | wc -l ) -eq 0 ]; then
   cp /etc/motd /tmp/motd; rm /etc/motd
 
@@ -483,7 +497,6 @@ if [[ $( grep kvmd /etc/passwd | wc -l ) -eq 0 || "$1" == "-f" ]]; then
   boot-files
   install-kvmd-pkgs
   gen-ssl-certs
-  create-override
   fix-udevrules
   install-dependencies
   otg-devices
@@ -498,12 +511,13 @@ else
   fix-nginx-symlinks
   fix-webterm
   fix-motd
-  set-ownership 
+  set-ownership
+  create-override
   create-kvmdfix
   check-kvmd-works
   start-kvmd-svcs
 
-  printf "\nCheck kvmd devices\n\n" 
+  printf "\nCheck kvmd devices\n\n"
   ls -l /dev/kvmd*
   printf "\nYou should see devices for keyboard, mouse, and video.\n"
 
