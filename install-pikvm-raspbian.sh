@@ -271,7 +271,7 @@ enable-kvmd-svcs() {
 } # end enable-kvmd-svcs
 
 build-ustreamer() {
-  printf "\n\n-> Building ustreamer 4.4\n\n"
+  printf "\n\n-> Building ustreamer\n\n"
   # Install packages needed for building ustreamer source
   apt install -y libevent-dev libjpeg8-dev libbsd-dev libraspberrypi-dev libgpiod-dev
 
@@ -284,7 +284,7 @@ build-ustreamer() {
 
   # kvmd service is looking for /usr/bin/ustreamer
   ln -s /usr/local/bin/ustreamer* /usr/bin/
-} # end build-ustreamer 4.4
+} # end build-ustreamer
 
 install-dependencies() {
   echo
@@ -439,22 +439,13 @@ check-kvmd-works() {
   done
 } # end check-kvmd-works
 
-start-svc() {
-  SVC="$1"
-  systemctl restart $SVC
-  #journalctl -xeu $SVC
-} # end start-srvc
-
 start-kvmd-svcs() {
   #### start the main KVM services in order ####
   # 1. nginx is the webserver
   # 2. kvmd-otg is for OTG devices (keyboard/mouse, etc..)
   # 3. kvmd is the main daemon
-  start-svc kvmd-nginx
-  start-svc kvmd-otg
-  start-svc kvmd-webterm
-  sleep 5
-  start-svc kvmd
+  systemctl restart kvmd-nginx kvmd-otg kvmd-webterm kvmd
+  #systemctl status kvmd-nginx kvmd-otg kvmd-webterm kvmd
 } # end start-kvmd-svcs
 
 fix-motd() {
@@ -494,6 +485,7 @@ if [[ $( grep kvmd /etc/passwd | wc -l ) -eq 0 || "$1" == "-f" ]]; then
   printf "\nRunning part 1 of PiKVM installer script for Raspbian by @srepac\n"
   get-packages
   get-platform
+  create-override
   boot-files
   install-kvmd-pkgs
   gen-ssl-certs
@@ -501,7 +493,7 @@ if [[ $( grep kvmd /etc/passwd | wc -l ) -eq 0 || "$1" == "-f" ]]; then
   install-dependencies
   otg-devices
   enable-kvmd-svcs
-  printf "\n\nRebooting to create kvmd users and groups.\nPlease re-run this script after reboot to complete the install.\n"
+  printf "\n\nReboot is required to create kvmd users and groups.\nPlease re-run this script after reboot to complete the install.\n"
 
   # Ask user to press CTRL+C before reboot or ENTER to proceed with reboot
   press-enter
@@ -512,7 +504,6 @@ else
   fix-webterm
   fix-motd
   set-ownership
-  create-override
   create-kvmdfix
   check-kvmd-works
   start-kvmd-svcs
