@@ -483,9 +483,9 @@ if [[ $( grep kvmd /etc/passwd | wc -l ) -eq 0 || "$1" == "-f" ]]; then
   printf "\nRunning part 1 of PiKVM installer script for Raspbian by @srepac\n"
   get-packages
   get-platform
-  create-override
   boot-files
   install-kvmd-pkgs
+  create-override
   gen-ssl-certs
   fix-udevrules
   install-dependencies
