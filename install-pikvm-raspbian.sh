@@ -72,6 +72,8 @@ kvmd:
         type: disabled
     streamer:
         forever: true
+        cmd_remove:
+             - "--process-name-prefix={process_name_prefix}"
 CSIOVERRIDE
 
     fi
