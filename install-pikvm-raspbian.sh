@@ -279,7 +279,11 @@ build-ustreamer() {
   cd /tmp
   git clone --depth=1 https://github.com/pikvm/ustreamer
   cd ustreamer/
-  make WITH_OMX=1 WITH_GPIO=1 WITH_SETPROCTITLE=1
+  if [[ $( uname -m ) == "aarch64" ]]; then
+    make WITH_OMX=0 WITH_GPIO=1 WITH_SETPROCTITLE=1     # ustreamer doesn't support 64-bit hardware OMX
+  else
+    make WITH_OMX=1 WITH_GPIO=1 WITH_SETPROCTITLE=1     # hardware OMX support with 32-bit ONLY
+  fi
   make install
 
   # kvmd service is looking for /usr/bin/ustreamer
