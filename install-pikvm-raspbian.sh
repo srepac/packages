@@ -11,7 +11,7 @@
 /dev/sda1  /var/lib/kvmd/msd   ext4  nodev,nosuid,noexec,ro,errors=remount-ro,data=journal,X-kvmd.otgmsd-root=/var/lib/kvmd/msd,X-kvmd.otgmsd-user=kvmd  0  0
 
 '
-# NOTE:  This was tested on a new install of raspbian, but should also work on an existing install.
+# NOTE:  This was tested on a new install of raspbian desktop and lite versions, but should also work on an existing install.
 #
 set +x
 PIKVMREPO="https://pikvm.org/repos/rpi4"
