@@ -27,6 +27,7 @@ get_pkgbuild_info() {
 		; printf %s\\n \
 			"_RET_VERSION=\"$epoch_prefix$pkgver-$pkgrel\"" \
 			"_RET_DEPS=\"${deps[*]}\"" \
+			"_RET_KEYS=\"${validpgpkeys[*]}\"" \
 	)
 	[ -n "$_RET_VERSION" ] || die "Missing or incorrect PKGBUILD"
 }
@@ -84,13 +85,8 @@ install_deps() {
 	fi
 }
 
-build() {
-	local build_dir="$1"
-	pushd "$build_dir" >/dev/null
-	say "Building package ..."
-	sudo -u alarm makepkg
-	say "Signing package(s) ..."
-	ls *.pkg.tar.xz | sudo -u alarm xargs -n1 -L1 bash -c "gpg \
+sign_piped() {
+	sudo -u alarm xargs -n1 -L1 bash -c "gpg \
 			--verbose \
 			--pinentry-mode loopback \
 			--local-user $REPO_KEY \
@@ -99,6 +95,26 @@ build() {
 			--no-autostart \
 			\$0 \
 		|| exit 255"
+}
+
+test_sign() {
+	local build_dir="$1"
+	pushd "$build_dir" >/dev/null
+	say "Testing sign ..."
+	rm -f .testsign{,.sig}
+	echo "test" > .testsign
+	echo .testsign | sign_piped
+	rm .testsign{,.sig}
+	popd >/dev/null
+}
+
+build() {
+	local build_dir="$1"
+	pushd "$build_dir" >/dev/null
+	say "Building package ..."
+	sudo -u alarm makepkg
+	say "Signing package(s) ..."
+	ls *.pkg.tar.xz | sign_piped
 	popd >/dev/null
 }
 
@@ -139,12 +155,14 @@ main() {
 	[ -n "$REPO_DIR" ] || die "Missing REPO_DIR variable"
 	[ -n "$BUILD_DIR" ] || die "Missing BUILD_DIR variable"
 	[ -n "$PACKAGES_DIR" ] || die "Missing PACKAGES_DIR variable"
+	[ -n "$MAKE_J" ] || die "Missing MAKE_J variable"
 
 	# =====
 
 	get_pkgbuild_info "$PACKAGES_DIR/$pkg_name/PKGBUILD"
 	local version="$_RET_VERSION"; unset _RET_VERSION
 	local deps="$_RET_DEPS"; unset _RET_DEPS
+	local keys="$_RET_KEYS"; unset _RET_KEYS
 
 	get_latest_version "$REPO_DIR" "$pkg_name"
 	local old_version="$_RET_VERSION"; unset _RET_VERSION
@@ -163,8 +181,19 @@ main() {
 	fi
 
 	if [ -n "$build" ]; then
+		sed -i -e "s/^#MAKEFLAGS=.*/MAKEFLAGS=-j$MAKE_J/g" /etc/makepkg.conf
+		say "Using MAKE_J=$MAKE_J"
 		append_repo "$REPO_NAME" "$REPO_DIR"
 		prepare_build_dir "$PACKAGES_DIR/$pkg_name" "$BUILD_DIR"
+		test_sign "$BUILD_DIR"
+# FIXME gpg от судо не хочет импортировать ключи с непонятной ошибкой
+#		if [ -n "$keys" ]; then
+#			for key in $keys; do
+#				sudo -u alarm gpg --keyserver hkps://keyserver.ubuntu.com:443 --recv-key $key \
+#				|| sudo -u alarm gpg --keyserver hkps://keys.gnupg.net:443 --recv-key $key \
+#				|| sudo -u alarm gpg --keyserver hkps://pgp.mit.edu:443 --recv-key $key
+#			done
+#		fi
 		install_deps "$deps"
 		build "$BUILD_DIR"
 		if [ -z "$norepo" ]; then
