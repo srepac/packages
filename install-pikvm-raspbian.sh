@@ -72,8 +72,6 @@ kvmd:
         type: disabled
     streamer:
         forever: true
-        cmd_remove:
-             - "--process-name-prefix={process_name_prefix}"
 CSIOVERRIDE
 
     fi
@@ -82,10 +80,10 @@ CSIOVERRIDE
 } # end create-override
 
 install-python-packages() {
-  for i in $( echo "aiofiles aiohttp appdirs asn1crypto async-timeout attrs bottle cbor2 cffi chardet click colorama cryptography
-dateutil deprecated hidapi idna libgpiod luma-core luma-oled marshmallow more-itertools multidict netifaces ordered-set
-packaging pam passlib pillow ply psutil pycparser pyelftools pyftdi pyghmi pygments pyparsing pyserial pyusb raspberry-gpio
-requests semantic-version setproctitle setuptools six smbus2 spidev systemd tabulate typing_extensions urllib3 wrapt xlib yaml yarl" )
+  for i in $( echo "aiofiles aiohttp appdirs asn1crypto async-timeout bottle cffi chardet click
+colorama cryptography dateutil hidapi idna libgpiod marshmallow more-itertools multidict netifaces dbus
+packaging passlib pillow ply psutil pycparser pyelftools pyghmi pygments pyparsing requests semantic-version
+setproctitle setuptools six spidev systemd tabulate urllib3 wrapt xlib yaml yarl" )
   do
     echo "apt-get install python3-$i -y"
     apt-get install python3-$i -y > /dev/null
@@ -296,8 +294,8 @@ install-dependencies() {
 
   apt-get update > /dev/null
   for i in $( echo "nginx python3 net-tools python3-pygments python3-aiofiles python3-setproctitle
-python3-aiohttp expect v4l-utils iptables python3-xlib python3-auth python3-psutil ttyd vim
-libgpiod screen tmate nfs-common libevent-pthreads libevent gpiod ffmpeg" )
+python3-aiohttp expect v4l-utils iptables python3-xlib python3-psutil vim dos2unix
+screen tmate nfs-common gpiod ffmpeg dialog iptables dnsmasq git" )
   do
     echo "apt-get install -y $i"
     apt-get install -y $i > /dev/null
