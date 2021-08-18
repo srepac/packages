@@ -393,7 +393,7 @@ ENDSERVICE
   cat <<SCRIPTEND > /usr/bin/kvmd-fix
 #!/bin/bash
 # Written by @srepac
-# 1.  Poperly set group ownership of /dev/gpio*
+# 1.  Properly set group ownership of /dev/gpio*
 # 2.  fix /dev/kvmd-video symlink to point to /dev/video0
 #
 ### These fixes are required in order for kvmd service to start properly
@@ -451,10 +451,10 @@ start-kvmd-svcs() {
 } # end start-kvmd-svcs
 
 fix-motd() {
-if [ $( grep pikvm /etc/motd | wc -l ) -eq 0 ]; then
-  cp /etc/motd /tmp/motd; rm /etc/motd
+  if [ $( grep pikvm /etc/motd | wc -l ) -eq 0 ]; then
+    cp /etc/motd /tmp/motd; rm /etc/motd
 
-  printf "
+    printf "
          ____  ____  _        _  ____     ____  __
         |  _ \|  _ \(_)      | |/ /\ \   / /  \/  |
         | |_) | |_) | |  __  | ' /  \ \ / /| |\/| |
@@ -473,8 +473,8 @@ if [ $( grep pikvm /etc/motd | wc -l ) -eq 0 ]; then
 
 " > /etc/motd
 
-  cat /tmp/motd >> /etc/motd
-fi
+    cat /tmp/motd >> /etc/motd
+  fi
 } # end fix-motd
 
 
