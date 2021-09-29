@@ -20,7 +20,7 @@ no="${color_ok}no${color_reset}"
 yes="${color_fail}yes${color_reset}"
 
 # code section to get Pi RAM size
-RAMGB=$( free -m | grep Mem | awk '{NUM = $2} END { print (NUM + 512) / 1024}' | awk -F\. '$1 > 0 {print $1 "GB"}' )
+RAMGB=$( vcgencmd get_config total_mem | awk -F= '{NUM = $2} END { if ( NUM < 1024 ) print NUM "MB"; else print (NUM / 1024) "GB"; }' )
 echo "${color_reset}# $(tr -d '\0' < /proc/device-tree/model) ${RAMGB}${color_reset}"
 
 echo
