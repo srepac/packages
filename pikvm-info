@@ -15,6 +15,7 @@ get-packages() {
         if [ ! -e $TMPFILE ]; then
                 pacman -Q | awk '{print $2, $1}' > $TMPFILE
         fi
+		PACKAGES="pikvm kvmd ustreamer nginx wpa wireless python3/stable"
 
 	else
         # Show kvmd version
@@ -35,6 +36,7 @@ get-packages() {
         if [ ! -e $TMPFILE ]; then
                 apt list 2> /dev/null | grep installed | grep -v ^$ | awk '{print $2, $1}' | sed -e 's/,now//g' -e 's/ubuntu[0-9]*//g' > $TMPFILE
         fi
+		PACKAGES="pikvm kvmd ustreamer nginx wpa wireless python3/stable firmware raspberrypi"
 
 	fi
 } # end get-packages
@@ -43,7 +45,6 @@ get-packages() {
 TMPFILE="/tmp/pacmanquery"
 
 get-packages
-PACKAGES="pikvm kvmd ustreamer nginx wpa wireless python3/stable firmware raspberrypi"
 for PKG in $( echo $PACKAGES ); do
         if [ $(grep -w $PKG $TMPFILE | wc -l) -gt 0 ]; then
                 printf "%-18s\t%s\n" $(grep -w $PKG $TMPFILE | sed 's/-[1-9]+//g')
