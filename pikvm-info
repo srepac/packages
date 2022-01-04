@@ -11,12 +11,12 @@ pistat && echo
 printf "%-18s\t%s\n" "Version" "Package-Name" "----------------------" "-----------------------------"
 
 get-packages() {
-if [[ $( echo $NAME | cut -d' ' -f1 ) == "Arch" ]]; then
+    if [[ $( echo $NAME | cut -d' ' -f1 ) == "Arch" ]]; then
         if [ ! -e $TMPFILE ]; then
                 pacman -Q | awk '{print $2, $1}' > $TMPFILE
         fi
 
-else
+	else
         # Show kvmd version
         printf "%-18s\t%s\n" $( grep ^Version: /usr/lib/python3.9/*-packages/kvmd-*egg-info/PKG-INFO | cut -d' ' -f2 | uniq | tail -1 ) "kvmd"
 
@@ -36,7 +36,7 @@ else
                 apt list 2> /dev/null | grep installed | grep -v ^$ | awk '{print $2, $1}' | sed -e 's/,now//g' -e 's/ubuntu[0-9]*//g' > $TMPFILE
         fi
 
-fi
+	fi
 } # end get-packages
 
 
@@ -48,4 +48,4 @@ for PKG in $( echo $PACKAGES ); do
         if [ $(grep -w $PKG $TMPFILE | wc -l) -gt 0 ]; then
                 printf "%-18s\t%s\n" $(grep -w $PKG $TMPFILE | sed 's/-[1-9]+//g')
         fi
-done | sort -u
+done
