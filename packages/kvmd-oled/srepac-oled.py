@@ -20,7 +20,7 @@
 #                                                                            #
 # ========================================================================== #
 ### srepac notes
-# Copy this file into /usr/bin/
+# Copy this file into /usr/bin/srepac-oled
 # In order to make this work on v2, follow the directions below:
 # 1. Add "i2c-dev" without the quotes into /etc/modules-load.d/kvmd.conf file
 # 2. Add "dtparam=i2c_arm=on" without the quotes into /boot/config.txt file
