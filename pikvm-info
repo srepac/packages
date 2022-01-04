@@ -2,17 +2,50 @@
 # Put this file into /usr/local/bin then you can run pikvm-info anywhere while logged in to Pi-KVM terminal/ssh
 #
 uptime
-TMPFILE="/tmp/pacmanquery"; /bin/rm -f $TMPFILE
-pacman -Q | awk '{print $2, $1}' > $TMPFILE
+NAME=$( cat /etc/*release | grep ^NAME | cut -d'=' -f2 | sed 's/"//g' )
+echo "Host OS:  $NAME `uname -r`"
 
 # pistat is built-in to pi-kvm (/usr/local/bin)
 pistat && echo
 
 printf "%-18s\t%s\n" "Version" "Package-Name" "----------------------" "-----------------------------"
 
-#PACKAGES="firmware bootloader kvmd ustreamer nginx wpa wireless"
-PACKAGES="pikvm kvmd ustreamer nginx wpa wireless"
+get-packages() {
+if [[ $( echo $NAME | cut -d' ' -f1 ) == "Arch" ]]; then
+        if [ ! -e $TMPFILE ]; then
+                pacman -Q | awk '{print $2, $1}' > $TMPFILE
+        fi
+
+else
+        # Show kvmd version
+        printf "%-18s\t%s\n" $( grep ^Version: /usr/lib/python3.9/*-packages/kvmd-*egg-info/PKG-INFO | cut -d' ' -f2 | uniq | tail -1 ) "kvmd"
+
+        # Show kvmd-platform version
+        v2v3=$( grep platform /var/cache/kvmd/installed_ver.txt | cut -d'-' -f4 )
+        if [[ $( grep video /etc/udev/rules.d/99-kvmd* | grep hdmiusb | wc -l ) -gt 0 ]]; then
+                platform="kvmd-platform-v2-hdmiusb-rpi4"
+        else
+                platform="kvmd-platform-${v2v3}-hdmi-rpi4"
+        fi
+        printf "%-18s\t%s\n" $( grep ^Version: /usr/lib/python3.9/*-packages/kvmd-*egg-info/PKG-INFO | cut -d' ' -f2 | uniq | tail -1 ) $platform
+
+        # Show ustreamer version
+        printf "%-18s\t%s\n" $( ustreamer -v ) "ustreamer"
+
+        if [ ! -e $TMPFILE ]; then
+                apt list 2> /dev/null | grep installed | grep -v ^$ | awk '{print $2, $1}' | sed -e 's/,now//g' -e 's/ubuntu[0-9]*//g' > $TMPFILE
+        fi
+
+fi
+} # end get-packages
+
+
+TMPFILE="/tmp/pacmanquery"
+
+get-packages
+PACKAGES="pikvm kvmd ustreamer nginx wpa wireless python3/stable firmware raspberrypi"
 for PKG in $( echo $PACKAGES ); do
-        printf "%-18s\t%s\n" $(grep $PKG $TMPFILE | sed 's/-[1-9]//g')
-done
-/bin/rm -f $TMPFILE
+        if [ $(grep -w $PKG $TMPFILE | wc -l) -gt 0 ]; then
+                printf "%-18s\t%s\n" $(grep -w $PKG $TMPFILE | sed 's/-[1-9]+//g')
+        fi
+done | sort -u
